@@ -23,9 +23,8 @@ createCommand({
     },
   ],
   run(interaction) {
-    const { locale } = interaction;
-    const author = interaction.user;
-    const targetUser = interaction.options.getUser("user", true);
+    const { locale, user: author, options } = interaction;
+    const targetUser = options.getUser("user", true);
 
     // Store the author's and target's IDs in the state.
     const stateId = likeState.set({
