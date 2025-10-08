@@ -18,6 +18,17 @@
           "description": "Select any user."
         }
       }
+    },
+    "list": {
+      "description": "Displays a paginated list of items."
+    },
+    "like": {
+      "description": "Show your appreciation for someone.",
+      "options": {
+        "user": {
+          "description": "The user you want to like."
+        }
+      }
     }
   },
   "ping": {
@@ -40,6 +51,19 @@
     "ban_success": "Simulating ban action for user ID: {{userid}}",
     "timeout_success": "Simulating timeout action for user ID: {{userid}}",
     "unknown_action": "Unknown action."
+  },
+  "list": {
+    "embed_title": "User List",
+    "embed_footer": "Page {{currentPage}} of {{totalPages}}"
+  },
+  "like": {
+    "reply_content": "{{author}} wants to show their appreciation for {{target}}!",
+    "button_label": "Like"
+  },
+  "like_component": {
+    "like_expired": "This like button has expired!",
+    "like_self": "You cannot like yourself through this button!",
+    "like_success": "You liked {{user}}!"
   },
   "common_errors": {
     "generic": "An unexpected error occurred. Please try again later."

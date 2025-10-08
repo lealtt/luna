@@ -18,6 +18,17 @@
           "description": "Selecione qualquer usuário."
         }
       }
+    },
+    "list": {
+      "description": "Exibe uma lista paginada de itens."
+    },
+    "like": {
+      "description": "Demonstre seu apreço por alguém.",
+      "options": {
+        "user": {
+          "description": "O usuário que você deseja curtir."
+        }
+      }
     }
   },
   "ping": {
@@ -40,6 +51,19 @@
     "ban_success": "Simulando ação de banimento para o usuário com ID: {{userid}}",
     "timeout_success": "Simulando ação de silenciamento para o usuário com ID: {{userid}}",
     "unknown_action": "Ação desconhecida."
+  },
+  "list": {
+    "embed_title": "Lista de Usuários",
+    "embed_footer": "Página {{currentPage}} de {{totalPages}}"
+  },
+  "like": {
+    "reply_content": "{{author}} quer demonstrar seu apreço por {{target}}!",
+    "button_label": "Curtir"
+  },
+  "like_component": {
+    "like_expired": "Este botão de curtir expirou!",
+    "like_self": "Você não pode curtir a si mesmo através deste botão!",
+    "like_success": "Você curtiu {{user}}!"
   },
   "common_errors": {
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."

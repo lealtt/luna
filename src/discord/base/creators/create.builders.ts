@@ -55,11 +55,12 @@ export function createRow(
   return new ActionRowBuilder<MessageActionRowComponentBuilders>().addComponents(components);
 }
 
+// Options for creating a button.
 interface CreateButtonOptions {
   customId: string;
   label?: string;
   style?: ButtonStyle;
-  emoji?: APIMessageComponentEmoji;
+  emoji?: APIMessageComponentEmoji | string;
   disabled?: boolean;
 }
 
@@ -80,6 +81,7 @@ export function createButton(options: CreateButtonOptions): ButtonBuilder {
   return button;
 }
 
+// Options for creating a select menu.
 interface CreateSelectMenuOptions {
   customId: string;
   placeholder?: string;

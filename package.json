@@ -33,6 +33,7 @@
     "typescript-eslint": "^8.46.0"
   },
   "imports": {
+    "#states": "./dist/discord/states/index.js",
     "#discord": "./dist/discord/index.js",
     "#discord/creators": "./dist/discord/base/creators/index.js",
     "#discord/registry": "./dist/discord/base/registry/index.js",

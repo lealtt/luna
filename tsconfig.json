@@ -13,6 +13,7 @@
     "declaration": true,
     "baseUrl": "./src",
     "paths": {
+      "#states": ["discord/states/index.ts"],
       "#discord": ["discord/index.ts"],
       "#discord/creators": ["discord/base/creators/index.ts"],
       "#discord/registry": ["discord/base/registry/index.ts"],
