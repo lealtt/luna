@@ -12,7 +12,7 @@ import {
 
 import path from "node:path";
 import { glob } from "glob";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   eventRegistry,
@@ -21,7 +21,7 @@ import {
   type AnyCommand,
   type ChatInputCommand,
 } from "#discord/registry";
-import { env, logger, getLocalizations, t } from "#utils";
+import { env, logger, getLocalizations, t, type I18nKey } from "#utils";
 import { startTaskRunner } from "#discord/client";
 
 /**
@@ -35,23 +35,31 @@ interface BootstrapOptions {
 }
 
 /**
- * Loads all module files from the 'discord' and 'tasks' directories.
+ * Dynamically loads all Discord and task modules.
+ *
+ * @param baseURL The base URL from which to resolve the project root, typically `import.meta.url`.
  */
-async function loadAllModules(baseURL: string) {
+export async function loadAllModules(baseURL: string): Promise<void> {
   const entryPath = fileURLToPath(baseURL);
   const isProduction = entryPath.includes("/dist/");
   const projectRoot = path.resolve(path.dirname(entryPath), "..");
+
   const scanDir = isProduction ? "dist" : "src";
   const extension = isProduction ? "js" : "ts";
+
   const bootstrapFilePath = fileURLToPath(import.meta.url);
+  const rootPosix = projectRoot.replace(/\\/g, "/");
 
-  const discordPattern = `${projectRoot.replace(/\\/g, "/")}/${scanDir}/discord/**/*.${extension}`;
-  const tasksPattern = `${projectRoot.replace(/\\/g, "/")}/${scanDir}/tasks/**/*.${extension}`;
+  const patterns = [
+    `${rootPosix}/${scanDir}/discord/**/*.${extension}`,
+    `${rootPosix}/${scanDir}/tasks/**/*.${extension}`,
+  ];
 
-  const files = await glob([discordPattern, tasksPattern], {
+  const files = await glob(patterns, {
     ignore: [bootstrapFilePath.replace(/\\/g, "/")],
   });
-  for (const file of files) await import(file);
+
+  await Promise.all(files.map(async (file) => import(pathToFileURL(file).href)));
 }
 
 /**
@@ -82,12 +90,13 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
 
     if (command.type === ApplicationCommandType.ChatInput) {
       const chatInput = command as ChatInputCommand;
-      const descriptionKey = `commands.${chatInput.name}.description`;
+      const descriptionKey = `commands.${chatInput.name}.description` as I18nKey;
 
       const localizedOptions = chatInput.options?.map((option) => {
         if (!("description" in option)) return option;
 
-        const optionKey = `commands.${chatInput.name}.options.${option.name}.description`;
+        const optionKey =
+          `commands.${chatInput.name}.options.${option.name}.description` as I18nKey;
         return {
           ...option,
           description: t("en-US", optionKey),
