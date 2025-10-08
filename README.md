@@ -64,7 +64,7 @@ LOG_CHANNEL_ID=YOUR_LOG_CHANNEL_ID_HERE
 
 ### ⚡ Running the Bot
 
-- **Development Mode** (with hot-reloading):
+- **Development Mode**:
 
 ```bash
 pnpm dev
