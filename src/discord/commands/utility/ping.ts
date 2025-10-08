@@ -7,12 +7,12 @@ createCommand({
   description: "Replies with Pong!",
   type: ApplicationCommandType.ChatInput,
   cooldown: 5,
-  async run(interaction) {
+  run(interaction) {
     const { locale } = interaction;
 
     const latency = Date.now() - interaction.createdTimestamp;
 
-    await interaction.reply({
+    interaction.reply({
       flags: [MessageFlags.Ephemeral],
       content: t(locale, "ping.reply", { latency }),
     });

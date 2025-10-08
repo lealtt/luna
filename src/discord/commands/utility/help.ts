@@ -40,13 +40,13 @@ createCommand({
       })),
     );
   },
-  async run(interaction) {
-    const { locale } = interaction;
-    const commandName = interaction.options.getString("command", true);
+  run(interaction) {
+    const { locale, options } = interaction;
+    const commandName = options.getString("command", true);
     const command = commandRegistry.get(commandName);
 
     if (!command || command.type !== ApplicationCommandType.ChatInput) {
-      await interaction.reply({
+      interaction.reply({
         content: t(locale, "help.command_not_found"),
         flags: [MessageFlags.Ephemeral],
       });
@@ -69,7 +69,7 @@ createCommand({
       ],
     });
 
-    await interaction.reply({
+    interaction.reply({
       embeds: [embed],
       flags: [MessageFlags.Ephemeral],
     });

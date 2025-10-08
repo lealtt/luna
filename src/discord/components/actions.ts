@@ -9,24 +9,25 @@ createComponent({
   async run(interaction, { type, userid }) {
     await interaction.deferUpdate();
 
-    const lang = interaction.locale;
+    const { locale } = interaction;
+
     let content: string;
 
     switch (type) {
       case "kick":
-        content = t(lang, "mod_actions.kick_success", { userid });
+        content = t(locale, "mod_actions.kick_success", { userid });
         break;
 
       case "ban":
-        content = t(lang, "mod_actions.ban_success", { userid });
+        content = t(locale, "mod_actions.ban_success", { userid });
         break;
 
       case "timeout":
-        content = t(lang, "mod_actions.timeout_success", { userid });
+        content = t(locale, "mod_actions.timeout_success", { userid });
         break;
 
       default:
-        content = t(lang, "mod_actions.unknown_action");
+        content = t(locale, "mod_actions.unknown_action");
         break;
     }
 

@@ -24,27 +24,27 @@ createCommand({
     },
   ],
   run(interaction) {
-    const lang = interaction.locale;
-    const targetUser = interaction.options.getUser("user", true);
+    const { locale, options } = interaction;
+    const targetUser = options.getUser("user", true);
 
     interaction.reply({
       flags: [MessageFlags.Ephemeral],
-      content: t(lang, "mod.reply", { user: userMention(targetUser.id) }),
+      content: t(locale, "mod.reply", { user: userMention(targetUser.id) }),
       components: [
         createRow(
           createButton({
             customId: `actions/kick/${targetUser.id}`,
-            label: t(lang, "mod.kick_button"),
+            label: t(locale, "mod.kick_button"),
             style: ButtonStyle.Danger,
           }),
           createButton({
             customId: `actions/ban/${targetUser.id}`,
-            label: t(lang, "mod.ban_button"),
+            label: t(locale, "mod.ban_button"),
             style: ButtonStyle.Danger,
           }),
           createButton({
             customId: `actions/timeout/${targetUser.id}`,
-            label: t(lang, "mod.timeout_button"),
+            label: t(locale, "mod.timeout_button"),
             style: ButtonStyle.Secondary,
           }),
         ),
