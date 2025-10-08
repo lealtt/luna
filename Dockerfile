@@ -9,6 +9,7 @@ COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod
 
 COPY dist ./dist
+COPY certs ./certs
 COPY locales ./locales
 COPY .env ./.env
 
