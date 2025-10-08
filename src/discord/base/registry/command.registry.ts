@@ -1,3 +1,4 @@
+import type { Middleware } from "#discord/middleware";
 import {
   ApplicationCommandType,
   ApplicationIntegrationType,
@@ -10,7 +11,7 @@ import {
   type UserContextMenuCommandInteraction,
 } from "discord.js";
 
-// Base interface with clean, camelCase properties.
+// Base interface with clean
 interface BaseCommandData {
   name: string;
   defaultMemberPermissions?: PermissionsString[];
@@ -24,6 +25,7 @@ interface ChatInputCommandData extends BaseCommandData {
   description: string;
   options?: APIApplicationCommandOption[];
   autocomplete?: (interaction: AutocompleteInteraction) => any | Promise<any>;
+  middlewares?: Middleware[];
 }
 
 // Maps our command type to the corresponding data interface.
@@ -57,10 +59,10 @@ export type MessageContextMenuCommand = Command<ApplicationCommandType.Message>;
 // A union type representing any command.
 export type AnyCommand = ChatInputCommand | UserContextMenuCommand | MessageContextMenuCommand;
 
-// The central registry for all commands.
+/** Command registry */
 export const commandRegistry = new Map<string, AnyCommand>();
 
-// Registers a command to the registry.
+/** Register a command */
 export function registerCommand(command: AnyCommand) {
   commandRegistry.set(command.name, command);
 }

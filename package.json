@@ -38,6 +38,7 @@
     "#discord/creators": "./dist/discord/base/creators/index.js",
     "#discord/registry": "./dist/discord/base/registry/index.js",
     "#discord/client": "./dist/discord/base/client/index.js",
+    "#discord/middleware": "./dist/discord/base/middlewares/index.js",
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js"
   }

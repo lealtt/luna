@@ -15,12 +15,12 @@ export enum ComponentInteractionType {
   Modal,
 }
 
-/** Parses a custom ID string like "user/{action}/{id}" into a typed object */
+// Parses a custom ID string like "user/{action}/{id}" into a typed object
 type ExtractParams<T extends string> = T extends `${string}{${infer P}}${infer R}`
   ? { [K in P]: string } & ExtractParams<R>
   : object;
 
-/** Infers the correct discord.js interaction type from our custom enum */
+// Infers the correct discord.js interaction type from our custom enum
 type InteractionForType<T extends ComponentInteractionType> =
   T extends ComponentInteractionType.Modal
     ? ModalSubmitInteraction
@@ -35,9 +35,7 @@ type InteractionForType<T extends ComponentInteractionType> =
         ? AnySelectMenuInteraction
         : MessageComponentInteraction;
 
-/**
- * A flexible, type-safe interface for a component or modal handler.
- */
+// A flexible, type-safe interface for a component or modal handler.
 export interface Component<
   T_ID extends string = string,
   T_Type extends ComponentInteractionType = ComponentInteractionType,

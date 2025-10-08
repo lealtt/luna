@@ -17,6 +17,7 @@ import {
 import { ComponentInteractionType, componentRegistry, type AnyCommand } from "#discord/registry";
 import { logger } from "#utils";
 import { createEvent } from "#discord/creators";
+import type { Middleware } from "#discord/middleware";
 
 /**
  * Handles incoming autocomplete interactions.
@@ -63,7 +64,7 @@ async function handleCooldown(
           Math.floor(expirationTime / 1000),
           "R",
         )}.`,
-        flags: [MessageFlags.Ephemeral],
+        flags: MessageFlags.Ephemeral,
       };
       await interaction.reply(cooldownReply);
       return true;
@@ -73,6 +74,31 @@ async function handleCooldown(
   timestamps.set(interaction.user.id, now);
   setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
   return false;
+}
+
+/**
+ * Executes a chain of middlewares and the final command logic.
+ * @param interaction The interaction object.
+ * @param middlewares The array of middlewares to execute.
+ * @param finalHandler The final function to call.
+ */
+async function runMiddlewareChain(
+  interaction: ChatInputCommandInteraction,
+  middlewares: Middleware[],
+  finalHandler: () => Promise<void>,
+) {
+  let index = -1;
+
+  const next = async () => {
+    index++;
+    if (index < middlewares.length) {
+      await middlewares[index](interaction, next);
+    } else {
+      await finalHandler();
+    }
+  };
+
+  await next();
 }
 
 /**
@@ -90,13 +116,14 @@ async function handleApplicationCommand(
     return;
   }
 
-  if (interaction.isChatInputCommand()) {
-    if (await handleCooldown(interaction, command)) return;
-  }
-
   try {
     if (command.type === ApplicationCommandType.ChatInput && interaction.isChatInputCommand()) {
-      await command.run(interaction);
+      const commandRun = () => command.run(interaction);
+      const middlewares = command.middlewares ?? [];
+
+      if (await handleCooldown(interaction, command)) return;
+
+      await runMiddlewareChain(interaction, middlewares, commandRun);
     } else if (
       command.type === ApplicationCommandType.User &&
       interaction.isUserContextMenuCommand()
@@ -113,7 +140,7 @@ async function handleApplicationCommand(
     const commandMention = chatInputApplicationCommandMention(command.name, interaction.commandId);
     const errorReply: InteractionReplyOptions = {
       content: `An unexpected error occurred while executing ${commandMention}. Please try again later.`,
-      flags: [MessageFlags.Ephemeral],
+      flags: MessageFlags.Ephemeral,
     };
 
     await (interaction.replied || interaction.deferred

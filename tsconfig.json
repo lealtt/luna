@@ -18,6 +18,7 @@
       "#discord/creators": ["discord/base/creators/index.ts"],
       "#discord/registry": ["discord/base/registry/index.ts"],
       "#discord/client": ["discord/base/client/index.ts"],
+      "#discord/middleware": ["discord/base/middlewares/index.ts"],
       "#database": ["database/index.ts"],
       "#utils": ["utils/index.ts"]
     }

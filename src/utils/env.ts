@@ -9,6 +9,7 @@ export const envSchema = z.object({
   BOT_TOKEN: z.string({ error: "BOT_TOKEN is required" }),
   MONGO_URI: z.string({ error: "MONGO_URI is required" }),
   MONGO_CERTIFICATE_PATH: z.string().optional(),
+  LOG_CHANNEL_ID: z.string().optional(),
 });
 
 /**
