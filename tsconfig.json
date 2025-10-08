@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "baseUrl": "./src",
+    "paths": {
+      "#discord": ["discord/index.ts"],
+      "#discord/creators": ["discord/base/creators/index.ts"],
+      "#discord/registry": ["discord/base/registry/index.ts"],
+      "#discord/client": ["discord/base/client/index.ts"],
+      "#database": ["database/index.ts"],
+      "#utils": ["utils/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", "tsup.config.ts"]
+}

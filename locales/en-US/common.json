@@ -1,0 +1,47 @@
+{
+  "commands": {
+    "ping": {
+      "description": "Checks the bot's latency."
+    },
+    "help": {
+      "description": "Get information about a specific command.",
+      "options": {
+        "command": {
+          "description": "The command you want to know more about."
+        }
+      }
+    },
+    "mod": {
+      "description": "Moderate any member.",
+      "options": {
+        "user": {
+          "description": "Select any user."
+        }
+      }
+    }
+  },
+  "ping": {
+    "reply": "Pong! Latency is {{latency}}ms."
+  },
+  "help": {
+    "embed_title": "Command: /{{commandName}}",
+    "cooldown_field": "Cooldown",
+    "cooldown_value": "{{seconds}} seconds",
+    "command_not_found": "I couldn't find that command."
+  },
+  "mod": {
+    "reply": "Select a moderation action for {{user}}:",
+    "kick_button": "Kick",
+    "ban_button": "Ban",
+    "timeout_button": "Timeout"
+  },
+  "mod_actions": {
+    "kick_success": "Simulating kick action for user ID: {{userid}}",
+    "ban_success": "Simulating ban action for user ID: {{userid}}",
+    "timeout_success": "Simulating timeout action for user ID: {{userid}}",
+    "unknown_action": "Unknown action."
+  },
+  "common_errors": {
+    "generic": "An unexpected error occurred. Please try again later."
+  }
+}

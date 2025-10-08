@@ -1,0 +1,47 @@
+{
+  "commands": {
+    "ping": {
+      "description": "Verifica a latência do bot."
+    },
+    "help": {
+      "description": "Obtém informações sobre um comando específico.",
+      "options": {
+        "command": {
+          "description": "O comando sobre o qual você deseja saber mais."
+        }
+      }
+    },
+    "mod": {
+      "description": "Modere qualquer membro.",
+      "options": {
+        "user": {
+          "description": "Selecione qualquer usuário."
+        }
+      }
+    }
+  },
+  "ping": {
+    "reply": "Pong! A latência é de {{latency}}ms."
+  },
+  "help": {
+    "embed_title": "Comando: /{{commandName}}",
+    "cooldown_field": "Tempo de Recarga",
+    "cooldown_value": "{{seconds}} segundos",
+    "command_not_found": "Não consegui encontrar esse comando."
+  },
+  "mod": {
+    "reply": "Selecione uma ação de moderação para {{user}}:",
+    "kick_button": "Expulsar",
+    "ban_button": "Banir",
+    "timeout_button": "Silenciar"
+  },
+  "mod_actions": {
+    "kick_success": "Simulando ação de expulsão para o usuário com ID: {{userid}}",
+    "ban_success": "Simulando ação de banimento para o usuário com ID: {{userid}}",
+    "timeout_success": "Simulando ação de silenciamento para o usuário com ID: {{userid}}",
+    "unknown_action": "Ação desconhecida."
+  },
+  "common_errors": {
+    "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+  }
+}
