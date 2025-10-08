@@ -29,70 +29,72 @@ type DotNestedKeys<T> = (
  */
 export type I18nKey = DotNestedKeys<typeof en>;
 
+/** Supported and fallback locales */
 const supportedLngs = [Locale.EnglishUS, Locale.PortugueseBR];
 const fallbackLng = Locale.EnglishUS;
 
-const resources: Record<string, any> = {};
+/** In-memory store for all loaded translation files */
+const resources: Record<string, Record<string, any>> = {};
 
 /**
  * Loads all translation files into memory.
  */
 export async function setupI18n() {
-  const localesDir = path.join(process.cwd(), "locales");
+  const localesDir = path.resolve(process.cwd(), "locales");
 
-  for (const lang of supportedLngs) {
-    const langPath = path.join(localesDir, lang, "common.json");
-    try {
-      const fileContent = await fs.readFile(langPath, "utf-8");
-      resources[lang] = JSON.parse(fileContent);
-    } catch (error) {
-      logger.error(`Failed to load translation file for language: ${lang}`, error);
-      process.exit(1);
-    }
-  }
-  logger.success("All translation files loaded successfully.");
+  await Promise.all(
+    supportedLngs.map(async (lang) => {
+      const langPath = path.join(localesDir, lang, "common.json");
+      try {
+        const content = await fs.readFile(langPath, "utf-8");
+        resources[lang] = JSON.parse(content);
+      } catch (error) {
+        logger.error(`Failed to load translation file for language: ${lang}`, error);
+        process.exit(1);
+      }
+    }),
+  );
 }
 
 /**
  * Gets a translated string for a given key.
  * @param lng The language to use.
  * @param key The key to look up (e.g., "ping.reply").
- * @param variables The variables for interpolation.
+ * @param variables Optional variables for interpolation.
  * @returns The translated string.
  */
 export function t(lng: string, key: I18nKey, variables?: Record<string, any>): string {
   const langFile = resources[lng] ?? resources[fallbackLng];
 
-  const keys = key.split(".");
-  let text: any = langFile;
-  for (const k of keys) {
-    if (text && typeof text === "object" && k in text) {
-      text = text[k];
-    } else {
-      return key;
-    }
-  }
+  // Traverse nested keys safely
+  const text = key
+    .split(".")
+    .reduce<any>((acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined), langFile);
 
   if (typeof text !== "string") return key;
 
   if (!variables) return text;
 
-  return text.replace(/{{(\w+)}}/g, (_, varName) => {
-    return variables[varName] !== undefined ? String(variables[varName]) : "";
-  });
+  // Interpolate variables like {{variable}}
+  return text.replace(/{{(\w+)}}/g, (_, varName) =>
+    varName in variables ? String(variables[varName]) : "",
+  );
 }
 
 /**
  * Generates a localization map for a given translation key.
+ * Useful for Discord localization maps.
  */
 export function getLocalizations(key: I18nKey): Record<string, string> {
   const localizations: Record<string, string> = {};
 
-  for (const lang of supportedLngs.filter((l) => l !== fallbackLng)) {
+  for (const lang of supportedLngs) {
+    if (lang === fallbackLng) continue;
     const translation = t(lang, key);
     if (translation !== key) {
       localizations[lang.replace("_", "-")] = translation;
     }
   }
+
   return localizations;
 }
