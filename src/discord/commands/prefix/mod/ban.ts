@@ -9,9 +9,27 @@ const BanFlagsSchema = z.object({
   reason: z.string().optional(),
 });
 
+// ?ban member: @SomeUser -d 5 reason="Repeated offenses"
 createPrefixCommand({
   name: "ban",
-  flags: BanFlagsSchema,
+  aliases: ["banir"],
+  flags: {
+    schema: BanFlagsSchema,
+    config: {
+      member: {
+        aliases: ["user", "usuario", "membro"],
+        separator: ":", // Uses ":" for this flag
+      },
+      days: {
+        aliases: ["d", "dias"],
+        // No 'separator', will use the default (prefixes --, -, /)
+      },
+      reason: {
+        aliases: ["r", "razão", "motivo"],
+        separator: "=", // Uses "=" for this flag
+      },
+    },
+  },
   middlewares: [logPrefixCommand, checkPermissions("BanMembers")],
   async run(message, flags) {
     const { days, member: memberQuery, reason } = flags;

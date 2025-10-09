@@ -132,6 +132,7 @@
     "invalid_args": "**Argumentos inválidos!** Por favor, verifique os dados inseridos.\n{{errors}}",
     "guild_only": "Este comando só pode ser usado em um servidor.",
     "missing_permissions": "Você não tem as permissões necessárias para este comando: `{{permissions}}`",
-    "paginator_expired": "Este componente não é para você ou já expirou!"
+    "paginator_expired": "Este componente não é para você ou já expirou!",
+    "optional_flags_title": "Flags Opcionais:"
   }
 }

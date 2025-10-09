@@ -132,6 +132,7 @@
     "invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
     "guild_only": "This command can only be used in a server.",
     "missing_permissions": "You are missing the required permissions for this command: `{{permissions}}`",
-    "paginator_expired": "This is not for you or has expired!"
+    "paginator_expired": "This is not for you or has expired!",
+    "optional_flags_title": "Optional Flags:"
   }
 }

@@ -2,7 +2,7 @@ import { createEvent } from "#discord/creators";
 import { parseFlags, prefixCommandRegistry, type PrefixCommand } from "#discord/registry";
 import { env, logger, t } from "#utils";
 import { Collection, Events, inlineCode, Message, time } from "discord.js";
-import { ZodError } from "zod";
+import { ZodError, type ZodObject } from "zod";
 import { runMiddlewareChain } from "#discord/base/middleware";
 
 /**
@@ -65,8 +65,9 @@ createEvent({
       const finalHandler = async () => {
         if (command.flags) {
           const rawArgs = content.slice(commandName.length).trim();
-          const rawFlags = parseFlags(rawArgs);
-          const parsedFlags = command.flags.parse(rawFlags);
+          const { schema, config } = command.flags;
+          const rawFlags = parseFlags(rawArgs, config);
+          const parsedFlags = schema.parse(rawFlags);
           await command.run(message, parsedFlags);
         } else {
           const args = content.split(/ +/).slice(1);
@@ -77,11 +78,24 @@ createEvent({
       const middlewares = command.middlewares ?? [];
       await runMiddlewareChain(message, middlewares, finalHandler);
     } catch (error) {
-      if (error instanceof ZodError) {
+      if (error instanceof ZodError && command?.flags?.schema) {
+        const schema = command.flags.schema as ZodObject<any>;
+
         const errorMessages = error.issues.map((e) => `> • **${e.path.join(".")}**: ${e.message}`);
+
+        const optionalFlags = Object.keys(schema.shape)
+          .filter((key) => schema.shape[key].isOptional())
+          .map((key) => `> • ${inlineCode(key)}`);
+
+        let fullErrorMessage = errorMessages.join("\n");
+        if (optionalFlags.length > 0) {
+          const optionalFlagsText = t(message.locale, "common_errors.optional_flags_title");
+          fullErrorMessage += `\n\n**${optionalFlagsText}**\n${optionalFlags.join("\n")}`;
+        }
+
         await message.reply(
           t(message.locale, "common_errors.invalid_args", {
-            errors: errorMessages.join("\n"),
+            errors: fullErrorMessage,
           }),
         );
       } else {
