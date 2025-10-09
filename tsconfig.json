@@ -4,7 +4,7 @@
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "strict": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -21,8 +21,10 @@
       "#discord/base/middleware": ["discord/base/middleware/index.ts"],
       "#discord/middlewares": ["discord/middlewares/index.ts"],
       "#database": ["database/index.ts"],
-      "#utils": ["utils/index.ts"]
+      "#utils": ["utils/index.ts"],
+      "#emojis": ["../emojis.json"]
     }
   },
+  "include": ["./**/*.ts"],
   "exclude": ["node_modules", "dist", "tsup.config.ts"]
 }
