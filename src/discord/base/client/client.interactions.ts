@@ -12,12 +12,22 @@ import {
   ApplicationCommandType,
   type UserContextMenuCommandInteraction,
   type MessageContextMenuCommandInteraction,
-  AutocompleteInteraction,
+  type AutocompleteInteraction,
+  inlineCode,
 } from "discord.js";
 import { ComponentInteractionType, componentRegistry, type AnyCommand } from "#discord/registry";
-import { logger } from "#utils";
+import { logger, Timer, t } from "#utils";
 import { createEvent } from "#discord/creators";
-import type { Middleware } from "#discord/middleware";
+import { runMiddlewareChain } from "#discord/base/middleware";
+import { userLocaleState } from "#states";
+
+/**
+ * A type alias for any application command interaction.
+ */
+type AnyApplicationCommandInteraction =
+  | ChatInputCommandInteraction
+  | UserContextMenuCommandInteraction
+  | MessageContextMenuCommandInteraction;
 
 /**
  * Handles incoming autocomplete interactions.
@@ -36,10 +46,10 @@ async function handleAutocomplete(interaction: AutocompleteInteraction) {
 }
 
 /**
- * Checks and handles the cooldown for a command.
+ * Checks and handles the cooldown for any application command.
  */
 async function handleCooldown(
-  interaction: ChatInputCommandInteraction,
+  interaction: AnyApplicationCommandInteraction,
   command: AnyCommand,
 ): Promise<boolean> {
   const { cooldowns } = interaction.client;
@@ -55,15 +65,22 @@ async function handleCooldown(
   if (userTimestamp) {
     const expirationTime = userTimestamp + cooldownAmount;
     if (now < expirationTime) {
-      const commandMention = chatInputApplicationCommandMention(
-        command.name,
-        interaction.commandId,
-      );
+      const commandMentionFormatters: Partial<Record<ApplicationCommandType, () => string>> = {
+        [ApplicationCommandType.ChatInput]: () =>
+          chatInputApplicationCommandMention(command.name, interaction.commandId),
+        [ApplicationCommandType.User]: () => inlineCode(command.name),
+        [ApplicationCommandType.Message]: () => inlineCode(command.name),
+      };
+
+      const formatter = commandMentionFormatters[interaction.commandType];
+      const commandMention = formatter ? formatter() : inlineCode(command.name);
+      const timeLeft = time(Math.floor(expirationTime / 1000), "R");
+
       const cooldownReply: InteractionReplyOptions = {
-        content: `⏳ Please wait before using ${commandMention} again. You can reuse it ${time(
-          Math.floor(expirationTime / 1000),
-          "R",
-        )}.`,
+        content: t(interaction.locale, "common_errors.cooldown", {
+          command: commandMention,
+          time: timeLeft,
+        }),
         flags: MessageFlags.Ephemeral,
       };
       await interaction.reply(cooldownReply);
@@ -77,39 +94,13 @@ async function handleCooldown(
 }
 
 /**
- * Executes a chain of middlewares and the final command logic.
- * @param interaction The interaction object.
- * @param middlewares The array of middlewares to execute.
- * @param finalHandler The final function to call.
- */
-async function runMiddlewareChain(
-  interaction: ChatInputCommandInteraction,
-  middlewares: Middleware[],
-  finalHandler: () => Promise<void>,
-) {
-  let index = -1;
-
-  const next = async () => {
-    index++;
-    if (index < middlewares.length) {
-      await middlewares[index](interaction, next);
-    } else {
-      await finalHandler();
-    }
-  };
-
-  await next();
-}
-
-/**
  * Handles the logic for executing any application command.
  */
-async function handleApplicationCommand(
-  interaction:
-    | ChatInputCommandInteraction
-    | UserContextMenuCommandInteraction
-    | MessageContextMenuCommandInteraction,
-) {
+async function handleApplicationCommand(interaction: AnyApplicationCommandInteraction) {
+  // Caches the user's client language from the interaction.
+  // This is useful as a fallback for prefix commands in DMs.
+  userLocaleState.set({ locale: interaction.locale }, Timer(1).hour());
+
   const command = interaction.client.commands.get(interaction.commandName);
   if (!command) {
     logger.error(`No command matching "${interaction.commandName}" was found.`);
@@ -117,29 +108,17 @@ async function handleApplicationCommand(
   }
 
   try {
-    if (command.type === ApplicationCommandType.ChatInput && interaction.isChatInputCommand()) {
-      const commandRun = () => command.run(interaction);
-      const middlewares = command.middlewares ?? [];
+    if (await handleCooldown(interaction, command)) return;
 
-      if (await handleCooldown(interaction, command)) return;
+    const finalHandler = () => command.run(interaction as any);
+    const middlewares = command.middlewares ?? [];
 
-      await runMiddlewareChain(interaction, middlewares, commandRun);
-    } else if (
-      command.type === ApplicationCommandType.User &&
-      interaction.isUserContextMenuCommand()
-    ) {
-      await command.run(interaction);
-    } else if (
-      command.type === ApplicationCommandType.Message &&
-      interaction.isMessageContextMenuCommand()
-    ) {
-      await command.run(interaction);
-    }
+    await runMiddlewareChain(interaction, middlewares as any, finalHandler);
   } catch (error) {
     logger.error(error);
-    const commandMention = chatInputApplicationCommandMention(command.name, interaction.commandId);
+
     const errorReply: InteractionReplyOptions = {
-      content: `An unexpected error occurred while executing ${commandMention}. Please try again later.`,
+      content: t(interaction.locale, "common_errors.generic"),
       flags: MessageFlags.Ephemeral,
     };
 
@@ -221,6 +200,8 @@ async function handleComponent(interaction: MessageComponentInteraction | ModalS
 createEvent({
   name: Events.InteractionCreate,
   async run(interaction) {
+    interaction.locale = interaction.guild?.preferredLocale ?? interaction.locale;
+
     switch (interaction.type) {
       case InteractionType.ApplicationCommand:
         if (

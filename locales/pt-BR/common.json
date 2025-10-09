@@ -29,6 +29,15 @@
           "description": "O usuário que você deseja curtir."
         }
       }
+    },
+    "ban": {
+      "description": "Bane um membro do servidor."
+    },
+    "bookmark": {
+      "description": "Marca uma mensagem como favorita enviando-a para suas DMs."
+    },
+    "show-avatar": {
+      "description": "Exibe o avatar de um usuário."
     }
   },
   "ping": {
@@ -65,7 +74,26 @@
     "like_self": "Você não pode curtir a si mesmo através deste botão!",
     "like_success": "Você curtiu {{user}}!"
   },
+  "bookmark": {
+    "dm_success": "Enviei a mensagem marcada para as suas DMs! 🔖",
+    "dm_error": "Não consegui enviar uma DM para você. Por favor, verifique suas configurações de privacidade.",
+    "embed_no_content": "_Esta mensagem não possui conteúdo de texto._",
+    "embed_original_message": "Mensagem Original",
+    "embed_jump_link": "Clique para ir para a mensagem"
+  },
+  "ban": {
+    "reply": "Baniu {{member}} {{reason}} (e apagou {{days}} {{plural}} de mensagens).",
+    "plural_day": "dia",
+    "plural_days": "dias",
+    "reason_provided": "pelo motivo \"{{reason}}\"",
+    "no_reason": "sem motivo especificado"
+  },
   "common_errors": {
-    "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde."
+    "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
+    "cooldown": "⏳ Por favor, aguarde antes de usar o comando {{command}} novamente. Você poderá usá-lo {{time}}.",
+    "invalid_args": "**Argumentos inválidos!** Por favor, verifique os dados inseridos.\n{{errors}}",
+    "guild_only": "Este comando só pode ser usado em um servidor.",
+    "missing_permissions": "Você não tem as permissões necessárias para este comando: `{{permissions}}`",
+    "paginator_expired": "Este componente não é para você ou já expirou!"
   }
 }

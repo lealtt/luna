@@ -1,8 +1,17 @@
-import { Command } from "#discord/registry";
+import { Collection, type Locale } from "discord.js";
+import type { AnyCommand } from "#discord/registry";
 
 declare module "discord.js" {
   export interface Client {
-    commands: Collection<string, Command>;
+    commands: Collection<string, AnyCommand>;
     cooldowns: Collection<string, Collection<string, number>>;
+  }
+
+  export interface Message {
+    readonly locale: Locale;
+  }
+
+  export interface BaseInteraction {
+    locale: Locale;
   }
 }

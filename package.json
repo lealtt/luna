@@ -3,7 +3,7 @@
   "author": {
     "name": "Lealt"
   },
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -38,7 +38,8 @@
     "#discord/creators": "./dist/discord/base/creators/index.js",
     "#discord/registry": "./dist/discord/base/registry/index.js",
     "#discord/client": "./dist/discord/base/client/index.js",
-    "#discord/middleware": "./dist/discord/base/middlewares/index.js",
+    "#discord/base/middleware": "./dist/discord/base/middleware/index.js",
+    "#discord/middlewares": "./dist/discord/middlewares/index.js",
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js"
   }

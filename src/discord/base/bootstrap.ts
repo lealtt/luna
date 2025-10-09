@@ -1,3 +1,5 @@
+import "#discord/client";
+
 import {
   Client,
   Collection,
@@ -17,7 +19,7 @@ import {
   commandRegistry,
   componentRegistry,
   type AnyCommand,
-  type ChatInputCommand,
+  prefixCommandRegistry,
 } from "#discord/registry";
 import { env, logger, getLocalizations, t, type I18nKey } from "#utils";
 import { startTaskRunner } from "#discord/client";
@@ -33,9 +35,23 @@ interface BootstrapOptions {
 }
 
 /**
+ * Recursively converts object keys from camelCase to snake_case.
+ */
+function keysToSnakeCase(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((v) => keysToSnakeCase(v));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce((acc, key) => {
+      const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+      acc[snakeKey] = keysToSnakeCase(obj[key]);
+      return acc;
+    }, {} as any);
+  }
+  return obj;
+}
+
+/**
  * Dynamically loads all Discord and task modules.
- *
- * @param baseURL The base URL from which to resolve the project root, typically `import.meta.url`.
  */
 export async function loadAllModules(baseURL: string): Promise<void> {
   const entryPath = fileURLToPath(baseURL);
@@ -71,30 +87,30 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
   const allGuildIds = new Set<string>(client.guilds.cache.map((g) => g.id));
   if (guilds) guilds.forEach((id) => allGuildIds.add(id));
 
-  for (const command of commandRegistry.values()) {
-    command.guilds?.forEach((id) => allGuildIds.add(id));
+  for (const rawCommand of commandRegistry.values()) {
+    const command = keysToSnakeCase(rawCommand) as any;
+
+    rawCommand.guilds?.forEach((id: string) => allGuildIds.add(id));
 
     const baseData = {
       name: command.name,
       nsfw: command.nsfw,
       contexts: command.contexts,
-      integration_types: command.integrationTypes,
-      default_member_permissions: command.defaultMemberPermissions
-        ? String(PermissionsBitField.resolve(command.defaultMemberPermissions))
+      integration_types: command.integration_types,
+      default_member_permissions: command.default_member_permissions
+        ? String(PermissionsBitField.resolve(command.default_member_permissions))
         : null,
     };
 
     let apiData: RESTPostAPIApplicationCommandsJSONBody;
 
     if (command.type === ApplicationCommandType.ChatInput) {
-      const chatInput = command as ChatInputCommand;
-      const descriptionKey = `commands.${chatInput.name}.description` as I18nKey;
+      const descriptionKey = `commands.${command.name}.description` as I18nKey;
 
-      const localizedOptions = chatInput.options?.map((option) => {
+      const localizedOptions = command.options?.map((option: any) => {
         if (!("description" in option)) return option;
 
-        const optionKey =
-          `commands.${chatInput.name}.options.${option.name}.description` as I18nKey;
+        const optionKey = `commands.${command.name}.options.${option.name}.description` as I18nKey;
         return {
           ...option,
           description: t("en-US", optionKey),
@@ -113,7 +129,7 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
       apiData = { ...baseData, type: command.type };
     }
 
-    const targetGuilds = command.guilds ?? guilds;
+    const targetGuilds = rawCommand.guilds ?? guilds;
     if (targetGuilds?.length) {
       const uniqueGuildIds = new Set(targetGuilds);
       for (const guildId of uniqueGuildIds) {
@@ -165,14 +181,16 @@ export async function lunaBootstrap(options: BootstrapOptions) {
     client[event.once ? "once" : "on"](event.name, handler);
   }
 
+  const uniquePrefixCommands = new Set(prefixCommandRegistry.values()).size;
+
   // Log a clean summary of loaded modules
-  logger.command(`Loaded ${commandRegistry.size} commands.`);
+  logger.command(`Loaded ${uniquePrefixCommands} (?) prefix commands.`);
+  logger.command(`Loaded ${commandRegistry.size} (/) slash commands.`);
   logger.event(`Loaded ${eventRegistry.size} events.`);
   logger.component(`Loaded ${componentRegistry.size} components.`);
 
   await client.login(env.BOT_TOKEN);
 
-  // Start tasks and log a summary
   const scheduledTasks = startTaskRunner(client);
   logger.task(`Scheduled ${scheduledTasks} tasks.`);
 

@@ -1,7 +1,4 @@
-import { defineState } from "#utils";
-import { z } from "zod";
 import {
-  type EmbedBuilder,
   type InteractionReplyOptions,
   ButtonStyle,
   MessageFlags,
@@ -10,21 +7,14 @@ import {
   type MessageActionRowComponentBuilder,
 } from "discord.js";
 import { createComponent } from "./create.components.js";
-import { ComponentInteractionType } from "../registry/component.registry.js";
-import { createRow } from "./create.builders.js";
-import { createButton } from "./create.builders.js";
-
-// A map to hold dynamically created paginator configurations.
-const paginatorRegistry = new Map<string, PaginatorOptions<any>>();
-
-// Define the shape of our state.
-const paginatorState = defineState(
-  "paginator",
-  z.object({
-    page: z.number(),
-    userId: z.string(),
-  }),
-);
+import {
+  ComponentInteractionType,
+  paginatorRegistry,
+  type PaginatorFormatPage,
+} from "#discord/registry";
+import { createRow, createButton } from "./create.builders.js";
+import { paginatorState } from "#states";
+import { t } from "#utils";
 
 // Default emojis for the navigation buttons.
 const defaultEmojis = {
@@ -40,13 +30,13 @@ interface PaginatorOptions<T> {
   paginatorId: string;
   items: T[];
   itemsPerPage: number;
-  formatPage: (pageItems: T[], currentPage: number, totalPages: number) => EmbedBuilder;
+  user: User;
+  formatPage: PaginatorFormatPage<T>;
   emojis?: Partial<typeof defaultEmojis>;
 }
 
 /**
  * Creates the navigation buttons for the paginator.
- * This function is now independent of the item type `T`.
  */
 function createPaginatorButtons(
   paginatorId: string,
@@ -97,79 +87,80 @@ function createPaginatorButtons(
  * @param options The options to configure the paginator.
  * @returns An InteractionReplyOptions object ready to be sent.
  */
-export function createPaginator<T>(
-  options: PaginatorOptions<T> & { user: User },
-): InteractionReplyOptions {
+export function createPaginator<T>(options: PaginatorOptions<T>): InteractionReplyOptions {
   const { paginatorId, items, itemsPerPage, user, formatPage, emojis } = options;
 
-  // Store the config if it doesn't exist.
+  // Store the format function if it doesn't already exist.
   if (!paginatorRegistry.has(paginatorId)) {
-    paginatorRegistry.set(paginatorId, { paginatorId, items, itemsPerPage, formatPage, emojis });
-    registerPaginatorComponent(paginatorId);
+    paginatorRegistry.set(paginatorId, formatPage);
   }
 
-  const stateId = paginatorState.set({
-    page: 0,
-    userId: user.id,
-  });
-
   const totalPages = Math.ceil(items.length / itemsPerPage);
-  const embed = formatPage(items.slice(0, itemsPerPage), 1, totalPages);
+  const initialState = {
+    items,
+    itemsPerPage,
+    currentPage: 0,
+    userId: user.id,
+    paginatorId,
+  };
+
+  // Create the initial state and get a unique ID.
+  const stateId = paginatorState.set(initialState);
+  const initialPageItems = items.slice(0, itemsPerPage);
+  const embed = formatPage(initialPageItems, 1, totalPages);
   const components = [createPaginatorButtons(paginatorId, stateId, 0, totalPages, emojis)];
 
   return { embeds: [embed], components, flags: MessageFlags.Ephemeral };
 }
 
 /**
- * Registers the component handler for a given paginator ID.
- * @param paginatorId The unique ID of the paginator.
+ * Registers a single, generic component handler for all paginators.
  */
-function registerPaginatorComponent(paginatorId: string) {
-  createComponent({
-    customId: `paginator/${paginatorId}/{direction}/{stateId}`,
-    type: ComponentInteractionType.Button,
-    async run(interaction, { direction, stateId }) {
-      const config = paginatorRegistry.get(paginatorId);
-      const state = paginatorState.get(stateId);
+createComponent({
+  customId: "paginator/{paginatorId}/{direction}/{stateId}",
+  type: ComponentInteractionType.Button,
+  async run(interaction, { paginatorId, direction, stateId }) {
+    const formatPage = paginatorRegistry.get(paginatorId);
+    const state = paginatorState.get(stateId);
 
-      if (!config || !state || interaction.user.id !== state.userId) {
-        return interaction.reply({
-          content: "This is not for you or has expired!",
-          flags: MessageFlags.Ephemeral,
-        });
-      }
+    // Check if the state is valid and if the interaction belongs to the original user.
+    if (!formatPage || !state || interaction.user.id !== state.userId) {
+      return interaction.reply({
+        content: t(interaction.locale, "common_errors.paginator_expired"),
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
-      const { items, itemsPerPage, formatPage, emojis } = config;
-      const totalPages = Math.ceil(items.length / itemsPerPage);
-      let newPage = state.page;
+    const { items, itemsPerPage } = state;
+    const totalPages = Math.ceil(items.length / itemsPerPage);
+    let newPage = state.currentPage;
 
-      // Move logic
-      switch (direction) {
-        case "first":
-          newPage = 0;
-          break;
-        case "prev":
-          newPage = Math.max(0, state.page - 1);
-          break;
-        case "home":
-          newPage = 0;
-          break;
-        case "next":
-          newPage = Math.min(totalPages - 1, state.page + 1);
-          break;
-        case "last":
-          newPage = totalPages - 1;
-          break;
-      }
+    // Calculate the new page number based on the direction of the clicked button.
+    switch (direction) {
+      case "first":
+        newPage = 0;
+        break;
+      case "prev":
+        newPage = Math.max(0, state.currentPage - 1);
+        break;
+      case "home":
+        newPage = 0;
+        break;
+      case "next":
+        newPage = Math.min(totalPages - 1, state.currentPage + 1);
+        break;
+      case "last":
+        newPage = totalPages - 1;
+        break;
+    }
 
-      const pageItems = items.slice(newPage * itemsPerPage, (newPage + 1) * itemsPerPage);
-      const embed = formatPage(pageItems, newPage + 1, totalPages);
-      const components = [
-        createPaginatorButtons(paginatorId, stateId, newPage, totalPages, emojis),
-      ];
+    // Slice the items for the new page and format the embed.
+    const pageItems = items.slice(newPage * itemsPerPage, (newPage + 1) * itemsPerPage);
+    const embed = formatPage(pageItems, newPage + 1, totalPages);
+    const components = [createPaginatorButtons(paginatorId, stateId, newPage, totalPages)];
 
-      paginatorState.update(stateId, { ...state, page: newPage });
-      await interaction.update({ embeds: [embed], components });
-    },
-  });
-}
+    // Update the state with the new page and update the original message.
+    paginatorState.update(stateId, { ...state, currentPage: newPage });
+    await interaction.update({ embeds: [embed], components });
+  },
+});

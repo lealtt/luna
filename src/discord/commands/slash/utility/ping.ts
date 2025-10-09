@@ -1,18 +1,15 @@
 import { createCommand } from "#discord/creators";
-import { logInteraction } from "#discord/middleware";
+import { logChatInput } from "#discord/middlewares";
 import { t } from "#utils";
-import { ApplicationCommandType, MessageFlags } from "discord.js";
+import { ApplicationCommandType, InteractionContextType, MessageFlags } from "discord.js";
 
 createCommand({
   name: "ping",
   description: "Replies with Pong!",
   type: ApplicationCommandType.ChatInput,
+  contexts: [InteractionContextType.Guild],
   cooldown: 5,
-  /**
-   * An array of middleware functions that will be executed
-   * in sequence before the command's `run` function is called.
-   */
-  middlewares: [logInteraction],
+  middlewares: [logChatInput],
   run(interaction) {
     const { locale } = interaction;
 

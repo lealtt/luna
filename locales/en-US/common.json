@@ -29,6 +29,15 @@
           "description": "The user you want to like."
         }
       }
+    },
+    "ban": {
+      "description": "Bans a member from the server."
+    },
+    "bookmark": {
+      "description": "Bookmarks a message by sending it to your DMs."
+    },
+    "show-avatar": {
+      "description": "Displays the avatar of a user."
     }
   },
   "ping": {
@@ -65,7 +74,26 @@
     "like_self": "You cannot like yourself through this button!",
     "like_success": "You liked {{user}}!"
   },
+  "bookmark": {
+    "dm_success": "I have sent the bookmarked message to your DMs! 🔖",
+    "dm_error": "I couldn't send you a DM. Please check your privacy settings.",
+    "embed_no_content": "_This message has no text content._",
+    "embed_original_message": "Original Message",
+    "embed_jump_link": "Click to jump to message"
+  },
+  "ban": {
+    "reply": "Banned {{member}} {{reason}} (and deleted {{days}} {{plural}} of messages).",
+    "plural_day": "day",
+    "plural_days": "days",
+    "reason_provided": "for the reason \"{{reason}}\"",
+    "no_reason": "for no reason specified"
+  },
   "common_errors": {
-    "generic": "An unexpected error occurred. Please try again later."
+    "generic": "An unexpected error occurred. Please try again later.",
+    "cooldown": "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
+    "invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
+    "guild_only": "This command can only be used in a server.",
+    "missing_permissions": "You are missing the required permissions for this command: `{{permissions}}`",
+    "paginator_expired": "This is not for you or has expired!"
   }
 }

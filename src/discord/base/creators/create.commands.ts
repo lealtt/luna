@@ -11,7 +11,7 @@ import {
  * Uses function overloads to provide strong type inference based on the command type.
  * @param options The command configuration, which determines the command's type and properties.
  */
-export function createCommand(options: ChatInputCommand): void;
+export function createCommand<const TName extends string>(options: ChatInputCommand<TName>): void;
 export function createCommand(options: UserContextMenuCommand): void;
 export function createCommand(options: MessageContextMenuCommand): void;
 export function createCommand(options: AnyCommand) {
