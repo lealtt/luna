@@ -11,6 +11,7 @@ import {
   type RESTPostAPIApplicationCommandsJSONBody,
   type GatewayIntentBits as GatewayIntentBitsType,
   type Partials as PartialsType,
+  ApplicationCommandOptionType,
 } from "discord.js";
 import path from "node:path";
 import { glob } from "glob";
@@ -21,6 +22,7 @@ import {
   componentRegistry,
   type AnyCommand,
   prefixCommandRegistry,
+  type CommandOption,
 } from "#discord/registry";
 import { env, logger, getLocalizations, t, type I18nKey } from "#utils";
 import { startTaskRunner } from "#discord/client";
@@ -78,6 +80,52 @@ export async function loadAllModules(baseURL: string): Promise<void> {
 }
 
 /**
+ * Recursively localizes command options.
+ * @param basePath The base path for the translation key (e.g., "commands.profile").
+ * @param options The options to localize.
+ */
+function localizeCommandOptions(basePath: string, options: CommandOption[]): any[] {
+  return options.map((option) => {
+    const optionNameKey = `${basePath}.options.${option.name}.name` as I18nKey;
+    const optionDescriptionKey = `${basePath}.options.${option.name}.description` as I18nKey;
+
+    const translatedOptionName = t("en-US", optionNameKey);
+    const finalOptionName =
+      translatedOptionName === optionNameKey ? option.name : translatedOptionName;
+
+    let finalOptionDescription: string | undefined;
+    if ("description" in option) {
+      const translatedOptionDesc = t("en-US", optionDescriptionKey);
+      finalOptionDescription =
+        translatedOptionDesc === optionDescriptionKey ? option.description : translatedOptionDesc;
+    }
+
+    let localizedSubOptions: any[] | undefined;
+    if (
+      option.type === ApplicationCommandOptionType.Subcommand ||
+      option.type === ApplicationCommandOptionType.SubcommandGroup
+    ) {
+      if (option.options) {
+        const newBasePath = `${basePath}.options.${option.name}`;
+        localizedSubOptions = localizeCommandOptions(
+          newBasePath,
+          option.options as CommandOption[],
+        );
+      }
+    }
+
+    return {
+      ...keysToSnakeCase(option),
+      name: finalOptionName,
+      name_localizations: getLocalizations(optionNameKey),
+      description: finalOptionDescription,
+      description_localizations: getLocalizations(optionDescriptionKey),
+      options: localizedSubOptions,
+    };
+  });
+}
+
+/**
  * Registers application commands with the Discord API, including localizations.
  */
 async function registerCommands(client: Client, rest: REST, guilds: string[] | undefined) {
@@ -115,32 +163,9 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
       const finalDescription =
         translatedDescription === descriptionKey ? command.description : translatedDescription;
 
-      const localizedOptions = command.options?.map((option) => {
-        const optionNameKey = `commands.${command.name}.options.${option.name}.name` as I18nKey;
-        const optionDescriptionKey =
-          `commands.${command.name}.options.${option.name}.description` as I18nKey;
-
-        const translatedOptionName = t("en-US", optionNameKey);
-        const finalOptionName =
-          translatedOptionName === optionNameKey ? option.name : translatedOptionName;
-
-        let finalOptionDescription: string | undefined;
-        if ("description" in option) {
-          const translatedOptionDesc = t("en-US", optionDescriptionKey);
-          finalOptionDescription =
-            translatedOptionDesc === optionDescriptionKey
-              ? option.description
-              : translatedOptionDesc;
-        }
-
-        return {
-          ...keysToSnakeCase(option),
-          name: finalOptionName,
-          name_localizations: getLocalizations(optionNameKey),
-          description: finalOptionDescription,
-          description_localizations: getLocalizations(optionDescriptionKey),
-        };
-      });
+      const localizedOptions = command.options
+        ? localizeCommandOptions(`commands.${command.name}`, command.options)
+        : undefined;
 
       apiData = {
         ...baseData,

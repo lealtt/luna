@@ -41,6 +41,22 @@
     },
     "report": {
       "description": "Reportar um usuário ou um bug."
+    },
+    "profile": {
+      "description": "Veja ou defina o perfil de um usuário.",
+      "options": {
+        "view": {
+          "description": "Veja o cartão de perfil de um usuário.",
+          "options": {
+            "user": {
+              "description": "O usuário cujo perfil você deseja ver."
+            }
+          }
+        },
+        "set": {
+          "description": "Defina sua descrição 'Sobre Mim' personalizada."
+        }
+      }
     }
   },
   "ping": {
@@ -98,6 +114,17 @@
     "description_label": "Descrição",
     "description_placeholder": "Por favor, descreva o problema em detalhes.",
     "success_message": "Obrigado, seu relatório foi enviado com sucesso!"
+  },
+  "profile": {
+    "embed_author": "Perfil de {{user}}",
+    "no_about_me": "Este usuário ainda não definiu um 'Sobre Mim'.",
+    "joined_field": "Entrou no Servidor",
+    "registered_field": "Registrado",
+    "footer": "ID do Usuário: {{id}}",
+    "about_modal_title": "Definir Seu Perfil",
+    "about_modal_label": "Sobre Mim",
+    "about_modal_placeholder": "Conte-nos um pouco sobre você...",
+    "success_message": "Seu perfil foi atualizado com sucesso!"
   },
   "common_errors": {
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",

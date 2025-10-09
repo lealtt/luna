@@ -41,6 +41,22 @@
     },
     "report": {
       "description": "Report a user or a bug."
+    },
+    "profile": {
+      "description": "View or set a user's profile.",
+      "options": {
+        "view": {
+          "description": "View a user's profile card.",
+          "options": {
+            "user": {
+              "description": "The user whose profile you want to see."
+            }
+          }
+        },
+        "set": {
+          "description": "Set your custom 'About Me' description."
+        }
+      }
     }
   },
   "ping": {
@@ -98,6 +114,17 @@
     "description_label": "Description",
     "description_placeholder": "Please describe the issue in detail.",
     "success_message": "Thank you, your report has been submitted successfully!"
+  },
+  "profile": {
+    "embed_author": "{{user}}'s Profile",
+    "no_about_me": "This user hasn't set an 'About Me' yet.",
+    "joined_field": "Joined Server",
+    "registered_field": "Registered",
+    "footer": "User ID: {{id}}",
+    "about_modal_title": "Set Your Profile",
+    "about_modal_label": "About Me",
+    "about_modal_placeholder": "Tell us a little bit about yourself...",
+    "success_message": "Your profile has been updated successfully!"
   },
   "common_errors": {
     "generic": "An unexpected error occurred. Please try again later.",

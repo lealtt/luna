@@ -1,7 +1,7 @@
 import mongoose, { model, type ConnectOptions } from "mongoose";
 import { env, logger } from "#utils";
-import type { IUser } from "./documents/UserDocument.js";
-import { type IUserModel, userSchema } from "./schemas/UserSchema.js";
+import type { IUser, IUserModel } from "./documents/UserDocument.js";
+import { userSchema } from "./schemas/UserSchema.js";
 
 const connectionOptions: ConnectOptions = {
   dbName: "myDatabase",

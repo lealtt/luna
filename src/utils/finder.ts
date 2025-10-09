@@ -18,11 +18,8 @@ import type { CommandContext } from "#discord/base/middleware";
  * A custom Promise class with additional chainable assertion methods.
  */
 class FinderPromise<T> extends Promise<T> {
-  private _value: Promise<T>;
-
   constructor(executor: (resolve: (value: T) => void, reject: (reason?: any) => void) => void) {
     super(executor);
-    this._value = new Promise(executor);
   }
 
   /**
@@ -30,7 +27,7 @@ class FinderPromise<T> extends Promise<T> {
    * Throws an error if the value is null, otherwise returns the value.
    */
   async notNull(): Promise<NonNullable<T>> {
-    const value = await this._value;
+    const value = await this;
     if (value === null || value === undefined) {
       throw new Error("Finder assertion failed: value is null or undefined.");
     }
@@ -41,8 +38,8 @@ class FinderPromise<T> extends Promise<T> {
    * Asserts that the found value is null or undefined.
    * Returns the value if it is null/undefined, otherwise returns null.
    */
-  async null(): Promise<null | undefined> {
-    const value = await this._value;
+  async isNull(): Promise<null | undefined> {
+    const value = await this;
     if (value === null) return null;
     if (value === undefined) return undefined;
     return null; // The original promise resolved to a non-nullish value.
@@ -54,7 +51,7 @@ class FinderPromise<T> extends Promise<T> {
    */
   textChannel(): FinderPromise<TextChannel | null> {
     return new FinderPromise(async (resolve) => {
-      const value = (await this._value) as Channel | null;
+      const value = (await this) as Channel | null;
       resolve(value instanceof TextChannel ? value : null);
     });
   }
@@ -65,7 +62,7 @@ class FinderPromise<T> extends Promise<T> {
    */
   voiceChannel(): FinderPromise<VoiceChannel | null> {
     return new FinderPromise(async (resolve) => {
-      const value = (await this._value) as Channel | null;
+      const value = (await this) as Channel | null;
       resolve(value instanceof VoiceChannel ? value : null);
     });
   }
@@ -76,7 +73,7 @@ class FinderPromise<T> extends Promise<T> {
    */
   categoryChannel(): FinderPromise<CategoryChannel | null> {
     return new FinderPromise(async (resolve) => {
-      const value = (await this._value) as Channel | null;
+      const value = (await this) as Channel | null;
       resolve(value instanceof CategoryChannel ? value : null);
     });
   }
@@ -87,7 +84,7 @@ class FinderPromise<T> extends Promise<T> {
    */
   newsChannel(): FinderPromise<NewsChannel | null> {
     return new FinderPromise(async (resolve) => {
-      const value = (await this._value) as Channel | null;
+      const value = (await this) as Channel | null;
       resolve(value instanceof NewsChannel ? value : null);
     });
   }
@@ -98,7 +95,7 @@ class FinderPromise<T> extends Promise<T> {
    */
   threadChannel(): FinderPromise<ThreadChannel | null> {
     return new FinderPromise(async (resolve) => {
-      const value = (await this._value) as Channel | null;
+      const value = (await this) as Channel | null;
       resolve(value instanceof ThreadChannel ? value : null);
     });
   }
