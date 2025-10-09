@@ -3,7 +3,7 @@ import path from "node:path";
 import { fetchApplicationEmojis, type EmojiOutput } from "../api/discord.js";
 import { logger } from "#utils";
 
-const DESTINATION_EMOJIS_PATH = path.resolve(process.cwd(), "emojis.json");
+const destinationEmojisPath = path.resolve(process.cwd(), "emojis.json");
 
 export async function generateJsonCommand() {
   const emojis = await fetchApplicationEmojis();
@@ -30,9 +30,9 @@ export async function generateJsonCommand() {
 
   try {
     const jsonContent = JSON.stringify(output, null, 2);
-    await fs.writeFile(DESTINATION_EMOJIS_PATH, jsonContent);
+    await fs.writeFile(destinationEmojisPath, jsonContent);
 
-    logger.success(`successfully generated emojis.json at ${DESTINATION_EMOJIS_PATH}`);
+    logger.success(`successfully generated emojis.json at ${destinationEmojisPath}`);
   } catch (err) {
     logger.error(`failed to generate emojis.json: ${(err as Error).message}`);
     process.exit(1);

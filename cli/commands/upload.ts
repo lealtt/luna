@@ -1,12 +1,59 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import AdmZip from "adm-zip";
-import { uploadApplicationEmoji, type EmojiOutput } from "../api/discord.js";
-import { logger } from "#utils";
+import { uploadApplicationEmoji, type EmojiOutput, EmojiOutputSchema } from "../api/discord.js";
+import { logger, Queue, Timer } from "#utils";
 
 const tempDir = path.resolve(process.cwd(), ".emojis_tmp");
 const validExtensions = [".png", ".jpg", ".jpeg", ".gif"];
 const emojisJsonPaths = path.resolve(process.cwd(), "emojis.json");
+const rateLimitDelay = Timer(2).sec();
+
+interface UploadTask {
+  name: string;
+  image: string;
+  filePath: string;
+}
+
+async function processUploadQueue(queue: Queue<UploadTask>, output: EmojiOutput) {
+  if (queue.isEmpty()) {
+    logger.info("Upload queue is empty. Writing to emojis.json...");
+    try {
+      const existingContent = await fs.readFile(emojisJsonPaths, "utf-8").catch(() => "{}");
+      const parsedJson = JSON.parse(existingContent);
+
+      const validation = EmojiOutputSchema.safeParse(parsedJson);
+      const existingEmojis = validation.success ? validation.data : { static: {}, animated: {} };
+
+      const mergedOutput: EmojiOutput = {
+        static: { ...existingEmojis.static, ...output.static },
+        animated: { ...existingEmojis.animated, ...output.animated },
+      };
+
+      await fs.writeFile(emojisJsonPaths, JSON.stringify(mergedOutput, null, 2));
+      logger.success("emojis.json updated successfully.");
+    } catch (err) {
+      logger.error(`failed to write emojis.json: ${String(err)}`);
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+    return;
+  }
+
+  const task = queue.dequeue()!;
+
+  try {
+    const uploaded = await uploadApplicationEmoji({ name: task.name, image: task.image });
+    if (uploaded) {
+      const category = uploaded.animated ? "animated" : "static";
+      output[category][uploaded.name] = uploaded.id;
+    }
+  } catch (err) {
+    logger.error(`error processing ${task.filePath}: ${String(err)}`);
+  }
+
+  setTimeout(() => processUploadQueue(queue, output), rateLimitDelay);
+}
 
 async function readImageAsDataURI(filePath: string): Promise<string> {
   const fileBuffer = await fs.readFile(filePath);
@@ -80,7 +127,7 @@ function createNameSanitizer() {
   };
 
   return (raw: string): string => {
-    const sanitized = raw.toLowerCase().replace(/[^a-z0-9_]/g, "_");
+    const sanitized = raw.toLowerCase().replace(/[^a-z0-g_]/g, "_");
     let base = toCamelCase(sanitized);
 
     if (base.length < 2) base = "emoji";
@@ -90,7 +137,7 @@ function createNameSanitizer() {
     let counter = 1;
     while (usedNames.has(unique)) {
       const suffix = `${counter++}`;
-      const trimLength = 32 - (suffix.length + 1); // +1 for the underscore
+      const trimLength = 32 - (suffix.length + 1);
       unique = `${base.substring(0, trimLength)}_${suffix}`;
     }
 
@@ -99,23 +146,23 @@ function createNameSanitizer() {
   };
 }
 
-export async function uploadCommand(args: string[]) {
-  if (args.length === 0) {
+export async function uploadCommand(paths: string[]) {
+  if (paths.length === 0) {
     logger.error("no paths provided for upload");
     logger.warn("usage: pnpm cli upload <path/to/image|zip>");
     process.exit(1);
   }
 
-  const files = await collectFilesFromInput(args);
+  const files = await collectFilesFromInput(paths);
 
   if (files.length === 0) {
     logger.error("no valid emoji images found");
     process.exit(1);
   }
 
-  logger.info(`processing ${files.length} files for upload...`);
+  logger.info(`preparing ${files.length} files for upload queue...`);
 
-  const output: EmojiOutput = { static: {}, animated: {} };
+  const uploadQueue = new Queue<UploadTask>();
   const sanitizeName = createNameSanitizer();
 
   for (const filePath of files) {
@@ -123,31 +170,17 @@ export async function uploadCommand(args: string[]) {
       const rawName = path.basename(filePath, path.extname(filePath));
       const name = sanitizeName(rawName);
       const image = await readImageAsDataURI(filePath);
-
-      const uploaded = await uploadApplicationEmoji({ name, image });
-      if (!uploaded) continue;
-
-      const category = uploaded.animated ? "animated" : "static";
-      output[category][uploaded.name] = uploaded.id;
+      uploadQueue.enqueue({ name, image, filePath });
     } catch (err) {
-      logger.error(`error processing ${filePath}: ${String(err)}`);
+      logger.error(`error preparing ${filePath}: ${String(err)}`);
     }
   }
 
-  try {
-    const existingContent = await fs.readFile(emojisJsonPaths, "utf-8").catch(() => "{}");
-    const existingEmojis = JSON.parse(existingContent) as EmojiOutput;
-
-    const mergedOutput: EmojiOutput = {
-      static: { ...existingEmojis.static, ...output.static },
-      animated: { ...existingEmojis.animated, ...output.animated },
-    };
-
-    await fs.writeFile(emojisJsonPaths, JSON.stringify(mergedOutput, null, 2));
-    logger.success("emojis.json updated successfully");
-  } catch (err) {
-    logger.error(`failed to write emojis.json: ${String(err)}`);
+  if (uploadQueue.isEmpty()) {
+    logger.error("no files were successfully prepared for upload.");
+    return;
   }
 
-  await fs.rm(tempDir, { recursive: true, force: true });
+  logger.info(`starting upload of ${uploadQueue.size} emojis...`);
+  processUploadQueue(uploadQueue, { static: {}, animated: {} });
 }

@@ -84,22 +84,22 @@ pnpm start
 
 ## ✨ Features
 
-| Feature | Description |
-| :--- | :--- |
-| 🧠 **TypeScript-first** | Full type safety across commands, events, components, and a localization system that auto-generates types from translation files. |
-| ⚙️ **Dynamic Module Loading** | Automatically loads all commands, events, and tasks from your source tree without manual imports. |
-| 🌐 **Unified i18n System** | Prioritizes server language preferences for consistent localization across all command and component types. |
-| 📜 **Structured Logging System** | Colored and categorized logs with middleware support to log command usage to a Discord channel. |
-| ⚡ **Fast Startup** | Optimized for quick boot times via parallel module loading. |
-| 🛡️ **Middleware System** | Reusable checks (permissions, cooldowns, etc.) that run before command execution for both prefix and interaction commands. |
-| 🧩 **Component-driven Architecture** | Safely pass values and context through dynamic `customId`s with automatic parameter extraction. |
-| 🛠️ **Utility Factories** | Create ActionRows, Embeds, Buttons, and Select Menus consistently with helper functions. |
-| ⏱️ **Scheduled Task System** | Run scheduled tasks automatically at intervals or on startup. |
-| 📑 **Reusable Paginator** | Build interactive, stateful paginated embeds from any dataset with minimal setup. |
-| 🔒 **Interaction State Handler** | Type-safe in-memory state management powered by Zod. |
-| 💬 **Multi-Command Type Support** | Unified handling for Slash, Prefix, and Context Menu (User & Message) commands. |
-| 🚩 **Flag Parsing with Zod** | Validate and parse named arguments for prefix commands with full type safety. |
-| ⏳ **Integrated Cooldown System** | Built-in cooldowns for both prefix and interaction commands with localized feedback. |
+| Feature                              | Description                                                                                                                       |
+| :----------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| 🧠 **TypeScript-first**              | Full type safety across commands, events, components, and a localization system that auto-generates types from translation files. |
+| ⚙️ **Dynamic Module Loading**        | Automatically loads all commands, events, and tasks from your source tree without manual imports.                                 |
+| 🌐 **Unified i18n System**           | Prioritizes server language preferences for consistent localization across all command and component types.                       |
+| 📜 **Structured Logging System**     | Colored and categorized logs with middleware support to log command usage to a Discord channel.                                   |
+| ⚡ **Fast Startup**                  | Optimized for quick boot times via parallel module loading.                                                                       |
+| 🛡️ **Middleware System**             | Reusable checks (permissions, cooldowns, etc.) that run before command execution for both prefix and interaction commands.        |
+| 🧩 **Component-driven Architecture** | Safely pass values and context through dynamic `customId`s with automatic parameter extraction.                                   |
+| 🛠️ **Utility Factories**             | Create ActionRows, Embeds, Buttons, and Select Menus consistently with helper functions.                                          |
+| ⏱️ **Scheduled Task System**         | Run scheduled tasks automatically at intervals or on startup.                                                                     |
+| 📑 **Reusable Paginator**            | Build interactive, stateful paginated embeds from any dataset with minimal setup.                                                 |
+| 🔒 **Interaction State Handler**     | Type-safe in-memory state management powered by Zod.                                                                              |
+| 💬 **Multi-Command Type Support**    | Unified handling for Slash, Prefix, and Context Menu (User & Message) commands.                                                   |
+| 🚩 **Flag Parsing with Zod**         | Validate and parse named arguments for prefix commands with full type safety.                                                     |
+| ⏳ **Integrated Cooldown System**    | Built-in cooldowns for both prefix and interaction commands with localized feedback.                                              |
 
 ---
 
@@ -115,13 +115,13 @@ pnpm cli <command> [arguments]
 
 ### Available Commands
 
-| Command | Arguments | Description |
-| :--- | :--- | :--- |
-| `upload` | `<path/to/file...>` | Uploads images or `.zip` archives as new emojis. Converts `snake_case` filenames to `camelCase`. |
-| `list` | | Lists all current application emojis in a machine-readable JSON array. |
-| `delete` | `[emoji_id...]` | Deletes specific emojis by ID, or all emojis (with confirmation) if no IDs are given. |
-| `generate-json` | | Fetches live emoji data from Discord and creates an `emojis.json` file in the project root. |
-| `help` | | Displays a detailed help message for all available CLI commands. |
+| Command         | Arguments           | Description                                                                                      |
+| :-------------- | :------------------ | :----------------------------------------------------------------------------------------------- |
+| `upload`        | `<path/to/file...>` | Uploads images or `.zip` archives as new emojis. Converts `snake_case` filenames to `camelCase`. |
+| `list`          |                     | Lists all current application emojis in a machine-readable JSON array.                           |
+| `delete`        | `[emoji_id...]`     | Deletes specific emojis by ID, or all emojis (with confirmation) if no IDs are given.            |
+| `generate-json` |                     | Fetches live emoji data from Discord and creates an `emojis.json` file in the project root.      |
+| `help`          |                     | Displays a detailed help message for all available CLI commands.                                 |
 
 ---
 

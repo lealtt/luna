@@ -62,10 +62,10 @@ async function deleteEmojisByIds(ids: string[]): Promise<void> {
   processDeleteQueue(emojiQueue, { value: 0 });
 }
 
-export async function deleteCommand(args: string[]) {
-  if (args.length === 0) {
+export async function deleteCommand(emoji_ids: string[]) {
+  if (emoji_ids.length === 0) {
     await deleteAllEmojis();
   } else {
-    await deleteEmojisByIds(args);
+    await deleteEmojisByIds(emoji_ids);
   }
 }
