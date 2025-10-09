@@ -12,6 +12,10 @@ import {
   type APIMessageComponentEmoji,
   type ColorResolvable,
   type StringSelectMenuOptionBuilder,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  type ModalActionRowComponentBuilder,
 } from "discord.js";
 
 // A more flexible type for embed options, allowing for a ColorResolvable color.
@@ -157,4 +161,60 @@ export function createMentionableSelectMenu(
     .setMinValues(options.minValues ?? 1)
     .setMaxValues(options.maxValues ?? 1)
     .setDisabled(options.disabled ?? false);
+}
+
+// Options for a text input within a modal.
+interface CreateTextInputOptions {
+  customId: string;
+  label: string;
+  style?: TextInputStyle;
+  placeholder?: string;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  value?: string;
+}
+
+/**
+ * A factory function for creating a text input builder (TextInputBuilder).
+ * @param options The options for the text input.
+ * @returns A TextInputBuilder instance.
+ */
+export function createTextInput(options: CreateTextInputOptions): TextInputBuilder {
+  const textInput = new TextInputBuilder()
+    .setCustomId(options.customId)
+    .setLabel(options.label)
+    .setStyle(options.style ?? TextInputStyle.Short)
+    .setRequired(options.required ?? true);
+
+  if (options.placeholder) textInput.setPlaceholder(options.placeholder);
+  if (options.minLength) textInput.setMinLength(options.minLength);
+  if (options.maxLength) textInput.setMaxLength(options.maxLength);
+  if (options.value) textInput.setValue(options.value);
+
+  return textInput;
+}
+
+// Options for creating a modal.
+interface CreateModalOptions {
+  customId: string;
+  title: string;
+  components: TextInputBuilder[];
+}
+
+/**
+ * A factory function for creating a Modal builder (ModalBuilder).
+ * @param options The options for the modal.
+ * @returns A ModalBuilder instance.
+ */
+export function createModal(options: CreateModalOptions): ModalBuilder {
+  const modal = new ModalBuilder().setCustomId(options.customId).setTitle(options.title);
+
+  const rows = options.components.map((component) =>
+    new ActionRowBuilder<ModalActionRowComponentBuilder>().addComponents(component),
+  );
+
+  modal.addComponents(rows);
+
+  return modal;
 }

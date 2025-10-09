@@ -23,7 +23,7 @@ export function createLogMiddleware<T extends CommandContext>(
     const commandName =
       "commandName" in context
         ? context.commandName
-        : context.content.split(/ +/)[0]?.substring(1) ?? "unknown";
+        : (context.content.split(/ +/)[0]?.substring(1) ?? "unknown");
     const commandId = "commandId" in context ? context.commandId : undefined;
     const commandType = "commandType" in context ? context.commandType : undefined;
 

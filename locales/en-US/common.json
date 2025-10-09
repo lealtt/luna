@@ -38,6 +38,9 @@
     },
     "show-avatar": {
       "name": "Show Avatar"
+    },
+    "report": {
+      "description": "Report a user or a bug."
     }
   },
   "ping": {
@@ -87,6 +90,14 @@
     "plural_days": "days",
     "reason_provided": "for the reason \"{{reason}}\"",
     "no_reason": "for no reason specified"
+  },
+  "report": {
+    "modal_title": "Submit a Report",
+    "subject_label": "Subject",
+    "subject_placeholder": "e.g., Bug in the /ping command",
+    "description_label": "Description",
+    "description_placeholder": "Please describe the issue in detail.",
+    "success_message": "Thank you, your report has been submitted successfully!"
   },
   "common_errors": {
     "generic": "An unexpected error occurred. Please try again later.",

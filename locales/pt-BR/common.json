@@ -38,6 +38,9 @@
     },
     "show-avatar": {
       "name": "Mostrar Avatar"
+    },
+    "report": {
+      "description": "Reportar um usuário ou um bug."
     }
   },
   "ping": {
@@ -87,6 +90,14 @@
     "plural_days": "dias",
     "reason_provided": "pelo motivo \"{{reason}}\"",
     "no_reason": "sem motivo especificado"
+  },
+  "report": {
+    "modal_title": "Enviar um Relatório",
+    "subject_label": "Assunto",
+    "subject_placeholder": "ex: Bug no comando /ping",
+    "description_label": "Descrição",
+    "description_placeholder": "Por favor, descreva o problema em detalhes.",
+    "success_message": "Obrigado, seu relatório foi enviado com sucesso!"
   },
   "common_errors": {
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
