@@ -103,8 +103,6 @@ pnpm start
 
 ---
 
----
-
 ## 🛠️ Command-Line Interface (CLI)
 
 Luna includes a powerful command-line interface to help manage your bot's application emojis directly from your terminal.
