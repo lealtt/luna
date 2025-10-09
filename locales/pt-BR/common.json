@@ -33,11 +33,11 @@
     "ban": {
       "description": "Bane um membro do servidor."
     },
-    "bookmark": {
-      "description": "Marca uma mensagem como favorita enviando-a para suas DMs."
+    "bookmark-message": {
+      "name": "Marcar Mensagem"
     },
     "show-avatar": {
-      "description": "Exibe o avatar de um usuário."
+      "name": "Mostrar Avatar"
     }
   },
   "ping": {

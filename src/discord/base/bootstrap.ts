@@ -1,3 +1,4 @@
+import "#database";
 import "#discord/client";
 
 import {
@@ -87,52 +88,89 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
   const allGuildIds = new Set<string>(client.guilds.cache.map((g) => g.id));
   if (guilds) guilds.forEach((id) => allGuildIds.add(id));
 
-  for (const rawCommand of commandRegistry.values()) {
-    const command = keysToSnakeCase(rawCommand) as any;
-
-    rawCommand.guilds?.forEach((id: string) => allGuildIds.add(id));
-
-    const baseData = {
-      name: command.name,
-      nsfw: command.nsfw,
-      contexts: command.contexts,
-      integration_types: command.integration_types,
-      default_member_permissions: command.default_member_permissions
-        ? String(PermissionsBitField.resolve(command.default_member_permissions))
-        : null,
-    };
+  for (const command of commandRegistry.values()) {
+    command.guilds?.forEach((id: string) => allGuildIds.add(id));
 
     let apiData: RESTPostAPIApplicationCommandsJSONBody;
 
+    // Base data common to all command types, converted to snake_case
+    const baseData = {
+      nsfw: command.nsfw,
+      contexts: command.contexts,
+      integration_types: command.integrationTypes,
+      default_member_permissions: command.defaultMemberPermissions
+        ? String(PermissionsBitField.resolve(command.defaultMemberPermissions))
+        : null,
+    };
+
+    // Handle Chat Input Commands
     if (command.type === ApplicationCommandType.ChatInput) {
+      const nameKey = `commands.${command.name}.name` as I18nKey;
       const descriptionKey = `commands.${command.name}.description` as I18nKey;
 
-      const localizedOptions = command.options?.map((option: any) => {
-        if (!("description" in option)) return option;
+      const translatedName = t("en-US", nameKey);
+      const finalName = translatedName === nameKey ? command.name : translatedName;
 
-        const optionKey = `commands.${command.name}.options.${option.name}.description` as I18nKey;
+      const translatedDescription = t("en-US", descriptionKey);
+      const finalDescription =
+        translatedDescription === descriptionKey ? command.description : translatedDescription;
+
+      const localizedOptions = command.options?.map((option) => {
+        const optionNameKey = `commands.${command.name}.options.${option.name}.name` as I18nKey;
+        const optionDescriptionKey =
+          `commands.${command.name}.options.${option.name}.description` as I18nKey;
+
+        const translatedOptionName = t("en-US", optionNameKey);
+        const finalOptionName =
+          translatedOptionName === optionNameKey ? option.name : translatedOptionName;
+
+        let finalOptionDescription: string | undefined;
+        if ("description" in option) {
+          const translatedOptionDesc = t("en-US", optionDescriptionKey);
+          finalOptionDescription =
+            translatedOptionDesc === optionDescriptionKey
+              ? option.description
+              : translatedOptionDesc;
+        }
+
         return {
-          ...option,
-          description: t("en-US", optionKey),
-          description_localizations: getLocalizations(optionKey),
+          ...keysToSnakeCase(option),
+          name: finalOptionName,
+          name_localizations: getLocalizations(optionNameKey),
+          description: finalOptionDescription,
+          description_localizations: getLocalizations(optionDescriptionKey),
         };
       });
 
       apiData = {
         ...baseData,
-        type: ApplicationCommandType.ChatInput,
-        description: t("en-US", descriptionKey),
+        name: finalName,
+        name_localizations: getLocalizations(nameKey),
+        description: finalDescription,
         description_localizations: getLocalizations(descriptionKey),
         options: localizedOptions,
+        type: ApplicationCommandType.ChatInput,
       };
     } else {
-      apiData = { ...baseData, type: command.type };
+      // Handle Context Menu Commands (User, Message)
+      const commandKey = command.name.toLowerCase().replace(/ /g, "-");
+      const nameKey = `commands.${commandKey}.name` as I18nKey;
+
+      const translatedName = t("en-US", nameKey);
+      const finalName = translatedName === nameKey ? command.name : translatedName;
+
+      apiData = {
+        ...baseData,
+        name: finalName,
+        name_localizations: getLocalizations(nameKey),
+        type: command.type,
+      };
     }
 
-    const targetGuilds = rawCommand.guilds ?? guilds;
+    // Assign command to global or guild-specific lists
+    const targetGuilds = command.guilds ?? guilds;
     if (targetGuilds?.length) {
-      const uniqueGuildIds = new Set(targetGuilds);
-      for (const guildId of uniqueGuildIds) {
+      for (const guildId of new Set(targetGuilds)) {
         const list = guildCommands.get(guildId) ?? [];
         list.push(apiData);
         guildCommands.set(guildId, list);
@@ -142,15 +180,18 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
     }
   }
 
-  logger.api(`Refreshing ${globalCommands.length} global (/) commands...`);
-  await rest.put(Routes.applicationCommands(clientId), { body: globalCommands });
+  // Deploy commands to the Discord API
+  if (globalCommands.length > 0) {
+    logger.api(`Refreshing ${globalCommands.length} global (/) commands...`);
+    await rest.put(Routes.applicationCommands(clientId), { body: globalCommands });
+  }
 
   for (const guildId of allGuildIds) {
-    const commandsForGuild = guildCommands.get(guildId) ?? [];
-    if (commandsForGuild.length > 0) {
-      logger.api(`Refreshing ${commandsForGuild.length} commands for guild ${guildId}...`);
+    const commandsToDeploy = guildCommands.get(guildId) ?? [];
+    if (commandsToDeploy.length > 0) {
+      logger.api(`Refreshing ${commandsToDeploy.length} commands for guild ${guildId}...`);
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-        body: commandsForGuild,
+        body: commandsToDeploy,
       });
     }
   }

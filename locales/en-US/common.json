@@ -33,11 +33,11 @@
     "ban": {
       "description": "Bans a member from the server."
     },
-    "bookmark": {
-      "description": "Bookmarks a message by sending it to your DMs."
+    "bookmark-message": {
+      "name": "Bookmark Message"
     },
     "show-avatar": {
-      "description": "Displays the avatar of a user."
+      "name": "Show Avatar"
     }
   },
   "ping": {

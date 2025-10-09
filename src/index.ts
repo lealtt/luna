@@ -1,4 +1,3 @@
-import "#database";
 import { lunaBootstrap } from "#discord";
 import { logger, setupI18n } from "#utils";
 import { GatewayIntentBits as Intents, Partials } from "discord.js";

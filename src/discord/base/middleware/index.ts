@@ -29,4 +29,3 @@ export type Middleware<T extends CommandContext = CommandContext> = (
 ) => Promise<void>;
 
 export * from "./runner.js";
-
