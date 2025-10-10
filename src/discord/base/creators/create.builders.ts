@@ -111,27 +111,45 @@ export function createRow(
 }
 
 // Options for creating a button.
-interface CreateButtonOptions {
-  customId: string;
-  label?: string;
-  style?: ButtonStyle;
-  emoji?: APIMessageComponentEmoji | string;
-  disabled?: boolean;
-}
+// This is now a discriminated union based on the button's style.
+type CreateButtonOptions =
+  | {
+      style: ButtonStyle.Link;
+      url: string; // 'url' is required for link buttons
+      customId?: never; // 'customId' is not allowed
+      label?: string;
+      emoji?: APIMessageComponentEmoji | string;
+      disabled?: boolean;
+    }
+  | {
+      style?: Exclude<ButtonStyle, ButtonStyle.Link>;
+      url?: never; // 'url' is not allowed for other styles
+      customId: string; // 'customId' is required for other styles
+      label?: string;
+      emoji?: APIMessageComponentEmoji | string;
+      disabled?: boolean;
+    };
 
 /**
  * A simple factory function for creating a ButtonBuilder.
+ * It is now type-safe and handles Link buttons correctly.
  * @param options The options for the button.
  * @returns A ButtonBuilder instance.
  */
 export function createButton(options: CreateButtonOptions): ButtonBuilder {
-  const button = new ButtonBuilder()
-    .setCustomId(options.customId)
-    .setStyle(options.style ?? ButtonStyle.Primary)
-    .setDisabled(options.disabled ?? false);
+  const button = new ButtonBuilder();
+
+  if (options.style === ButtonStyle.Link) {
+    // Logic for Link buttons
+    button.setStyle(ButtonStyle.Link).setURL(options.url);
+  } else {
+    // Logic for all other button styles
+    button.setStyle(options.style ?? ButtonStyle.Primary).setCustomId(options.customId);
+  }
 
   if (options.label) button.setLabel(options.label);
   if (options.emoji) button.setEmoji(options.emoji);
+  if (options.disabled) button.setDisabled(options.disabled);
 
   return button;
 }
