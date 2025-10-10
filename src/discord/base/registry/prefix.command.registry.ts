@@ -95,6 +95,7 @@ export function parseFlags(
 export interface PrefixCommand<T extends z.ZodObject<any> | undefined = undefined> {
   name: string;
   aliases?: string[];
+  guilds?: string[];
   flags?: T extends z.ZodObject<any> ? FlagsObject<T> : undefined;
   cooldown?: number;
   middlewares?: Middleware<Message>[];

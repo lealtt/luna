@@ -59,6 +59,10 @@ createEvent({
     const command = prefixCommandRegistry.get(commandName);
     if (!command) return;
 
+    if (command.guilds && command.guilds.length > 0) {
+      if (!message.inGuild() || !command.guilds.includes(message.guild.id)) return;
+    }
+
     if (await handleCooldown(message, command)) return;
 
     try {

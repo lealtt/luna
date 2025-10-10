@@ -1,4 +1,4 @@
-import { logger } from "./logger.js";
+import { logger } from "../system/logger.js";
 import settings from "#settings" with { type: "json" };
 import { z } from "zod";
 

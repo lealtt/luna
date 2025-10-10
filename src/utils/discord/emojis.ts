@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { logger } from "./logger.js";
+import { logger } from "../system/logger.js";
 import rawEmojiConfig from "#emojis" with { type: "json" };
 
 // Statically extract the literal keys from the raw JSON import.

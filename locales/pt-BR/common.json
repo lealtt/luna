@@ -106,13 +106,6 @@
     "embed_original_message": "Mensagem Original",
     "embed_jump_link": "Clique para ir para a mensagem"
   },
-  "ban": {
-    "reply": "Baniu {{member}} {{reason}} (e apagou {{days}} {{plural}} de mensagens).",
-    "plural_day": "dia",
-    "plural_days": "dias",
-    "reason_provided": "pelo motivo \"{{reason}}\"",
-    "no_reason": "sem motivo especificado"
-  },
   "report": {
     "modal_title": "Enviar um Relatório",
     "subject_label": "Assunto",
@@ -131,6 +124,18 @@
     "about_modal_label": "Sobre Mim",
     "about_modal_placeholder": "Conte-nos um pouco sobre você...",
     "success_message": "Seu perfil foi atualizado com sucesso!"
+  },
+  "tag": {
+    "usage_help_flags": "Uso:\n- `?tag <nome>`\n- `?tag --create <nome> --content <conteúdo>`\n- `?tag --delete <nome>`\n- `?tag --list`",
+    "create_missing_args": "Você precisa fornecer um nome e conteúdo para criar uma tag. Uso: `?tag create <nome> <conteúdo>`",
+    "already_exists": "Já existe uma tag com o nome `{{name}}`.",
+    "create_success": "A tag `{{name}}` foi criada com sucesso.",
+    "delete_missing_args": "Você precisa fornecer o nome da tag para apagar. Uso: `?tag delete <nome>`",
+    "not_found": "Não consegui encontrar uma tag com o nome `{{name}}`.",
+    "delete_no_perms": "Você não tem permissão para apagar esta tag. É preciso ser o autor ou ter a permissão de 'Gerenciar Mensagens'.",
+    "delete_success": "A tag `{{name}}` foi apagada com sucesso.",
+    "list_empty": "Ainda não existem tags neste servidor.",
+    "list_all": "Aqui estão todas as tags deste servidor:\n{{list}}"
   },
   "mod_command": {
     "title": "Ação de Moderação Registrada",

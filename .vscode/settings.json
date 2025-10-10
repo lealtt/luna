@@ -13,7 +13,9 @@
     "dist": "Dist",
     "creators": "Ui",
     "registry": "Lottie",
-    "luna": "Moon"
+    "luna": "Moon",
+    "structures": "Custom",
+    "system": "Interface"
   },
   "material-icon-theme.files.associations": {
     "settings.json": "Raml",

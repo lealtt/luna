@@ -106,13 +106,6 @@
     "embed_original_message": "Original Message",
     "embed_jump_link": "Click to jump to message"
   },
-  "ban": {
-    "reply": "Banned {{member}} {{reason}} (and deleted {{days}} {{plural}} of messages).",
-    "plural_day": "day",
-    "plural_days": "days",
-    "reason_provided": "for the reason \"{{reason}}\"",
-    "no_reason": "for no reason specified"
-  },
   "report": {
     "modal_title": "Submit a Report",
     "subject_label": "Subject",
@@ -131,6 +124,18 @@
     "about_modal_label": "About Me",
     "about_modal_placeholder": "Tell us a little bit about yourself...",
     "success_message": "Your profile has been updated successfully!"
+  },
+  "tag": {
+    "usage_help_flags": "Usage:\n- `?tag <name>`\n- `?tag --create <name> --content <content>`\n- `?tag --delete <name>`\n- `?tag --list`",
+    "create_missing_args": "You must provide a name and content to create a tag. Usage: `?tag create <name> <content>`",
+    "already_exists": "A tag named `{{name}}` already exists.",
+    "create_success": "Successfully created tag `{{name}}`.",
+    "delete_missing_args": "You must provide the name of the tag to delete. Usage: `?tag delete <name>`",
+    "not_found": "I couldn't find a tag named `{{name}}`.",
+    "delete_no_perms": "You don't have permission to delete this tag. You must be the author or have 'Manage Messages' permission.",
+    "delete_success": "Successfully deleted tag `{{name}}`.",
+    "list_empty": "There are no tags on this server yet.",
+    "list_all": "Here are all the tags for this server:\n{{list}}"
   },
   "mod_command": {
     "title": "Moderation Action Logged",

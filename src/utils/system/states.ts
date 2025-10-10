@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Timer } from "./timer.js";
+import { Timer } from "../structures/Timer.js";
 import { logger } from "./logger.js";
 
 /**

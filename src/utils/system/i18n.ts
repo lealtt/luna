@@ -1,8 +1,8 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import { Locale } from "discord.js";
-import { logger } from "./logger.js";
-import type en from "../../locales/en-US/common.json";
+import { logger } from "../system/logger.js";
+import type en from "../../../locales/en-US/common.json";
 
 /**
  * A recursive helper type that transforms a nested object into a union
