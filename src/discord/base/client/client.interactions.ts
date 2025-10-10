@@ -185,10 +185,28 @@ async function handleComponent(interaction: MessageComponentInteraction | ModalS
 
     if (!typeMatch) continue;
 
-    const params = matchAndGetParams(component.customId, interaction.customId);
-    if (params) {
+    const rawParams = matchAndGetParams(component.customId, interaction.customId);
+    if (rawParams) {
       try {
-        await component.run(interaction as any, params);
+        let finalParams: any = rawParams;
+
+        if (component.paramsSchema) {
+          const validation = component.paramsSchema.safeParse(rawParams);
+          if (!validation.success) {
+            logger.error(`Zod validation failed for component "${component.customId}":`);
+            validation.error.issues.forEach((issue) => {
+              logger.error(`  - Path: ${issue.path.join(".")}, Message: ${issue.message}`);
+            });
+            await interaction.reply({
+              content: t(interaction.locale, "common_errors.generic"),
+              flags: MessageFlags.Ephemeral,
+            });
+            return;
+          }
+          finalParams = validation.data;
+        }
+
+        await component.run(interaction as any, finalParams);
       } catch (error) {
         logger.error(error);
       }
