@@ -1,0 +1,18 @@
+{
+  "color": {
+    "primary": "#5865F2",
+    "success": "#57F287",
+    "warning": "#FEE75C",
+    "danger": "#ED4245",
+    "white": "#FFFFFF",
+    "black": "#000000",
+    "blurple": "#5865F2",
+    "gold": "#F1C40F",
+    "magenta": "#E91E63",
+    "teal": "#1ABC9C",
+    "orange": "#E67E22",
+    "purple": "#9B59B6",
+    "dark": "#2C3E50",
+    "light": "#ECF0F1"
+  }
+}

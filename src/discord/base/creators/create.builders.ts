@@ -18,22 +18,34 @@ import {
   type ModalActionRowComponentBuilder,
 } from "discord.js";
 
-// A more flexible type for embed options, allowing for a ColorResolvable color.
-type CreateEmbedOptions = Omit<APIEmbed, "color"> & {
-  color?: ColorResolvable;
+/**
+ * Extended color type that includes Discord's ColorResolvable
+ * and general string colors (e.g., "#00ffcc" from settings.json).
+ */
+export type FlexibleColor = ColorResolvable | (string & {});
+
+/**
+ * A more flexible type for embed options.
+ */
+export type CreateEmbedOptions = Omit<APIEmbed, "color"> & {
+  color?: FlexibleColor;
 };
 
 /**
  * A simple factory function for creating an EmbedBuilder.
- * @param options The options for the embed, with a flexible color type.
- * @returns An EmbedBuilder instance.
+ * Supports both ColorResolvable and string hex colors.
  */
 export function createEmbed(options: CreateEmbedOptions): EmbedBuilder {
   const { color, ...rest } = options;
   const embed = new EmbedBuilder(rest);
 
   if (color) {
-    embed.setColor(color);
+    if (typeof color === "string" && /^#?[0-9A-Fa-f]{6}$/.test(color)) {
+      const hex = color.startsWith("#") ? color.slice(1) : color;
+      embed.setColor(parseInt(hex, 16));
+    } else {
+      embed.setColor(color as ColorResolvable);
+    }
   }
 
   return embed;

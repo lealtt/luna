@@ -1,6 +1,6 @@
 import { createCommand, createEmbed } from "#discord/creators";
 import { commandRegistry } from "#discord/registry";
-import { type I18nKey, t } from "#utils";
+import { colors, type I18nKey, t } from "#utils";
 import {
   ApplicationCommandOptionType,
   ApplicationCommandType,
@@ -58,7 +58,7 @@ createCommand({
     const embed = createEmbed({
       title: t(locale, "help.embed_title", { commandName: command.name }),
       description: t(locale, descriptionKey),
-      color: "Aqua",
+      color: colors.blurple,
       fields: [
         {
           name: t(locale, "help.cooldown_field"),

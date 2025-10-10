@@ -6,3 +6,4 @@ export * from "./i18n.js";
 export * from "./states.js";
 export * from "./finder.js";
 export * from "./emojis.js";
+export * from "./colors.js";

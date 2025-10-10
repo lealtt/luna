@@ -21,7 +21,6 @@ npm-debug.log*
 Thumbs.db
 
 # IDE / Editor directories
-.vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace

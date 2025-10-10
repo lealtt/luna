@@ -22,7 +22,8 @@
       "#discord/middlewares": ["discord/middlewares/index.ts"],
       "#database": ["database/index.ts"],
       "#utils": ["utils/index.ts"],
-      "#emojis": ["../emojis.json"]
+      "#emojis": ["../emojis.json"],
+      "#settings": ["../settings.json"]
     }
   },
   "include": ["./**/*.ts"],
