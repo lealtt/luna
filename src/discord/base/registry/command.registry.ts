@@ -150,7 +150,7 @@ export type CommandOption = BasicCommandOption | SubcommandOption | SubcommandGr
 // Base interface with clean, camelCase properties
 interface BaseCommandData {
   name: string;
-  defaultMemberPermissions?: PermissionsString[];
+  defaultMemberPermissions?: (PermissionsString | bigint)[];
   nsfw?: boolean;
   integrationTypes?: ApplicationIntegrationType[];
   contexts?: InteractionContextType[];

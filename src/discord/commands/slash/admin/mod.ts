@@ -6,6 +6,7 @@ import {
   ButtonStyle,
   InteractionContextType,
   MessageFlags,
+  PermissionFlagsBits,
   userMention,
 } from "discord.js";
 
@@ -14,7 +15,7 @@ createCommand({
   description: "Moderate any member.",
   type: ApplicationCommandType.ChatInput,
   contexts: [InteractionContextType.Guild],
-  defaultMemberPermissions: ["KickMembers", "BanMembers", "ModerateMembers"],
+  defaultMemberPermissions: [PermissionFlagsBits.ModerateMembers, PermissionFlagsBits.BanMembers],
   options: [
     {
       type: ApplicationCommandOptionType.User,

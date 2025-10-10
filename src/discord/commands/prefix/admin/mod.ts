@@ -6,8 +6,9 @@ import {
   createButton,
   LunaSeparators,
 } from "#discord/creators";
+import { checkPermissions } from "#discord/middlewares";
 import { Finder, colors, t } from "#utils";
-import { MessageFlags, ButtonStyle, userMention } from "discord.js";
+import { MessageFlags, ButtonStyle, userMention, PermissionFlagsBits } from "discord.js";
 import { z } from "zod";
 
 const ModFlagsSchema = z.object({
@@ -22,6 +23,9 @@ createPrefixCommand({
       user: { aliases: ["u"], separator: ":" },
     },
   },
+  middlewares: [
+    checkPermissions(PermissionFlagsBits.ModerateMembers, PermissionFlagsBits.BanMembers),
+  ],
   async run(message, flags) {
     const { guild, locale } = message;
     const { user: userInput } = flags;
