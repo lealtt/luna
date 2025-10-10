@@ -12,7 +12,7 @@ createPrefixCommand({
     // it automatically returns an array of EmbedBuilders,
     // formatted as a gallery.
     const embeds = createEmbed({
-      color: colors.magenta,
+      color: colors.magenta.hex,
       image: [
         author.displayAvatarURL({ size: 256 }),
         client.user.displayAvatarURL({ size: 256 }),

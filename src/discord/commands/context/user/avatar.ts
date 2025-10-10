@@ -16,9 +16,7 @@ createCommand({
     const avatarURL = targetUser.displayAvatarURL({ size: 512 });
 
     const embed = createEmbed({
-      image: {
-        url: avatarURL,
-      },
+      image: avatarURL,
       color: "Blue",
     });
 

@@ -58,7 +58,7 @@ createCommand({
     const embed = createEmbed({
       title: t(locale, "help.embed_title", { commandName: command.name }),
       description: t(locale, descriptionKey),
-      color: colors.blurple,
+      color: colors.blurple.hex,
       fields: [
         {
           name: t(locale, "help.cooldown_field"),

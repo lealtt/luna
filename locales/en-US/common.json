@@ -80,6 +80,12 @@
     "timeout_success": "Simulating timeout action for user ID: {{userid}}",
     "unknown_action": "Unknown action."
   },
+  "mod_panel": {
+    "title": "Moderation Panel for {{user}}",
+    "kick_description": "**Kick**: Removes the member from the server.",
+    "ban_description": "**Ban**: Permanently removes the member.",
+    "timeout_description": "**Timeout**: Prevents the member from interacting."
+  },
   "list": {
     "embed_title": "User List",
     "embed_footer": "Page {{currentPage}} of {{totalPages}}"
@@ -126,6 +132,19 @@
     "about_modal_placeholder": "Tell us a little bit about yourself...",
     "success_message": "Your profile has been updated successfully!"
   },
+  "mod_command": {
+    "title": "Moderation Action Logged",
+    "user_field": "User",
+    "action_field": "Action",
+    "moderator_field": "Moderator",
+    "reason_field": "Reason",
+    "no_reason": "No reason provided.",
+    "feedback": {
+      "warn_success": "Successfully warned {{user}}.",
+      "kick_success": "Successfully kicked {{user}} (simulation).",
+      "ban_success": "Successfully banned {{user}} (simulation)."
+    }
+  },
   "common_errors": {
     "generic": "An unexpected error occurred. Please try again later.",
     "cooldown": "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
@@ -133,6 +152,8 @@
     "guild_only": "This command can only be used in a server.",
     "missing_permissions": "You are missing the required permissions for this command: `{{permissions}}`",
     "paginator_expired": "This is not for you or has expired!",
-    "optional_flags_title": "Optional Flags:"
+    "optional_flags_title": "Optional Flags:",
+    "invalid_user_format": "Invalid user format. Please mention a user or provide an ID.",
+    "member_not_found": "Could not find the specified member in this server."
   }
 }

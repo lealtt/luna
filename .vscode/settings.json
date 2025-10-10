@@ -27,7 +27,7 @@
     ".env": ".env*",
     "Dockerfile": ".dockerignore",
     "package.json": "pnpm-lock.yaml, tsconfig.json, .gitignore, tsup.config.ts, eslint.config.js, .prettierignore, .prettierrc, README.md, LICENSE",
-    "settings.json": "emojis.json",
+    "settings.json": "emojis.json"
   },
 
   "typescript.suggest.autoImports": true,

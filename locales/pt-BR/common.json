@@ -80,6 +80,12 @@
     "timeout_success": "Simulando ação de silenciamento para o usuário com ID: {{userid}}",
     "unknown_action": "Ação desconhecida."
   },
+  "mod_panel": {
+    "title": "Painel de Moderação para {{user}}",
+    "kick_description": "**Expulsar**: Remove o membro do servidor.",
+    "ban_description": "**Banir**: Remove o membro permanentemente.",
+    "timeout_description": "**Silenciar**: Impede o membro de interagir."
+  },
   "list": {
     "embed_title": "Lista de Usuários",
     "embed_footer": "Página {{currentPage}} de {{totalPages}}"
@@ -126,6 +132,19 @@
     "about_modal_placeholder": "Conte-nos um pouco sobre você...",
     "success_message": "Seu perfil foi atualizado com sucesso!"
   },
+  "mod_command": {
+    "title": "Ação de Moderação Registrada",
+    "user_field": "Usuário",
+    "action_field": "Ação",
+    "moderator_field": "Moderador",
+    "reason_field": "Motivo",
+    "no_reason": "Nenhum motivo fornecido.",
+    "feedback": {
+      "warn_success": "{{user}} foi avisado com sucesso.",
+      "kick_success": "{{user}} foi expulso com sucesso (simulação).",
+      "ban_success": "{{user}} foi banido com sucesso (simulação)."
+    }
+  },
   "common_errors": {
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
     "cooldown": "⏳ Por favor, aguarde antes de usar o comando {{command}} novamente. Você poderá usá-lo {{time}}.",
@@ -133,6 +152,8 @@
     "guild_only": "Este comando só pode ser usado em um servidor.",
     "missing_permissions": "Você não tem as permissões necessárias para este comando: `{{permissions}}`",
     "paginator_expired": "Este componente não é para você ou já expirou!",
-    "optional_flags_title": "Flags Opcionais:"
+    "optional_flags_title": "Flags Opcionais:",
+    "invalid_user_format": "Formato de usuário inválido. Por favor, mencione um usuário ou forneça um ID.",
+    "member_not_found": "Não foi possível encontrar o membro especificado neste servidor."
   }
 }

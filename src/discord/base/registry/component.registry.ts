@@ -1,8 +1,12 @@
 import {
   type ModalSubmitInteraction,
   type ButtonInteraction,
-  type AnySelectMenuInteraction,
   type MessageComponentInteraction,
+  ChannelSelectMenuInteraction,
+  MentionableSelectMenuInteraction,
+  RoleSelectMenuInteraction,
+  StringSelectMenuInteraction,
+  UserSelectMenuInteraction,
 } from "discord.js";
 import type { z } from "zod";
 
@@ -40,14 +44,17 @@ type InteractionForType<T extends ComponentInteractionType> =
     ? ModalSubmitInteraction
     : T extends ComponentInteractionType.Button
       ? ButtonInteraction
-      : T extends
-            | ComponentInteractionType.StringSelect
-            | ComponentInteractionType.UserSelect
-            | ComponentInteractionType.RoleSelect
-            | ComponentInteractionType.MentionableSelect
-            | ComponentInteractionType.ChannelSelect
-        ? AnySelectMenuInteraction
-        : MessageComponentInteraction;
+      : T extends ComponentInteractionType.StringSelect
+        ? StringSelectMenuInteraction
+        : T extends ComponentInteractionType.UserSelect
+          ? UserSelectMenuInteraction
+          : T extends ComponentInteractionType.RoleSelect
+            ? RoleSelectMenuInteraction
+            : T extends ComponentInteractionType.ChannelSelect
+              ? ChannelSelectMenuInteraction
+              : T extends ComponentInteractionType.MentionableSelect
+                ? MentionableSelectMenuInteraction
+                : MessageComponentInteraction;
 
 /**
  * Base interface with common properties for all components.
