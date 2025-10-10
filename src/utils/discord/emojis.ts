@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { logger } from "../system/logger.js";
-import rawEmojiConfig from "#emojis" with { type: "json" };
+import rawEmojiConfig from "#emojisJson" with { type: "json" };
 
 // Statically extract the literal keys from the raw JSON import.
 // This is what TypeScript's language server uses for autocomplete.

@@ -6,11 +6,6 @@ import type en from "../../../locales/en-US/common.json";
 
 /**
  * A recursive helper type that transforms a nested object into a union
- * of dot-separated key paths.
- *
- * @example
- * type MyType = { a: { b: string }, c: string };
- * type MyKeys = DotNestedKeys<MyType>; // "a.b" | "c"
  */
 type DotNestedKeys<T> = (
   T extends object
@@ -25,9 +20,11 @@ type DotNestedKeys<T> = (
   : never;
 
 /**
- * The final type representing all possible i18n keys based on the en-US translation file.
+ * The final type representing all possible i18n keys.
+ * If the imported 'en' type is an empty object, it defaults to `string`.
+ * Otherwise, it generates the specific dot-notation keys for full autocomplete.
  */
-export type I18nKey = DotNestedKeys<typeof en>;
+export type I18nKey = keyof typeof en extends never ? string : DotNestedKeys<typeof en>;
 
 /** Supported and fallback locales */
 const supportedLngs = [Locale.EnglishUS, Locale.PortugueseBR];
@@ -35,12 +32,32 @@ const fallbackLng = Locale.EnglishUS;
 
 /** In-memory store for all loaded translation files */
 const resources: Record<string, Record<string, any>> = {};
+let i18nInitialized = false;
 
 /**
- * Loads all translation files into memory.
+ * Loads all translation files into memory. If the required directories or files
+ * do not exist, it creates them to ensure type-safety and autocomplete.
  */
 export async function setupI18n() {
   const localesDir = path.resolve(process.cwd(), "locales");
+  const enUsDir = path.join(localesDir, Locale.EnglishUS);
+  const enUsFile = path.join(enUsDir, "common.json");
+
+  try {
+    await fs.access(enUsFile);
+  } catch {
+    logger.warn("Localization file 'locales/en-US/common.json' not found.");
+    try {
+      await fs.mkdir(enUsDir, { recursive: true });
+      await fs.writeFile(enUsFile, "{}");
+      logger.success(
+        "Created default localization file. Please restart the bot to apply translations.",
+      );
+    } catch (error) {
+      logger.error("Failed to create default localization files:", error);
+    }
+    return; // Stop further execution, will use default names on next start
+  }
 
   await Promise.all(
     supportedLngs.map(async (lang) => {
@@ -48,12 +65,20 @@ export async function setupI18n() {
       try {
         const content = await fs.readFile(langPath, "utf-8");
         resources[lang] = JSON.parse(content);
-      } catch (error) {
-        logger.error(`Failed to load translation file for language: ${lang}`, error);
-        process.exit(1);
+      } catch {
+        // This is now safe to ignore, as the base file is guaranteed to exist.
       }
     }),
   );
+
+  if (Object.keys(resources).length > 0) {
+    i18nInitialized = true;
+    logger.info(`Successfully loaded translations for: ${Object.keys(resources).join(", ")}`);
+  } else {
+    logger.warn(
+      "No translation files were loaded. The bot will use default command names and descriptions.",
+    );
+  }
 }
 
 /**
@@ -64,15 +89,16 @@ export async function setupI18n() {
  * @returns The translated string.
  */
 export function t(lng: string, key: I18nKey, variables?: Record<string, any>): string {
+  if (!i18nInitialized) return key as string;
+
   const langFile = resources[lng] ?? resources[fallbackLng];
 
   // Traverse nested keys safely
-  const text = key
+  const text = (key as string)
     .split(".")
     .reduce<any>((acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined), langFile);
 
-  if (typeof text !== "string") return key;
-
+  if (typeof text !== "string") return key as string;
   if (!variables) return text;
 
   // Interpolate variables like {{variable}}
@@ -86,15 +112,15 @@ export function t(lng: string, key: I18nKey, variables?: Record<string, any>): s
  * Useful for Discord localization maps.
  */
 export function getLocalizations(key: I18nKey): Record<string, string> {
-  const localizations: Record<string, string> = {};
+  if (!i18nInitialized) return {};
 
+  const localizations: Record<string, string> = {};
   for (const lang of supportedLngs) {
     if (lang === fallbackLng) continue;
     const translation = t(lang, key);
-    if (translation !== key) {
+    if (translation !== (key as string)) {
       localizations[lang.replace("_", "-")] = translation;
     }
   }
-
   return localizations;
 }

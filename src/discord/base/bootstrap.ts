@@ -24,7 +24,7 @@ import {
   prefixCommandRegistry,
   type CommandOption,
 } from "#discord/registry";
-import { env, logger, getLocalizations, t, type I18nKey } from "#utils";
+import { env, logger, getLocalizations, t, type I18nKey, setupI18n } from "#utils";
 import { startTaskRunner } from "#discord/client";
 
 /**
@@ -35,6 +35,7 @@ interface BootstrapOptions {
   partials: PartialsType[];
   baseURL: string;
   guilds?: string[];
+  useI18n?: boolean;
 }
 
 /**
@@ -226,6 +227,8 @@ async function registerCommands(client: Client, rest: REST, guilds: string[] | u
  * Initializes and starts the Discord bot.
  */
 export async function lunaBootstrap(options: BootstrapOptions) {
+  if (options.useI18n !== false) await setupI18n();
+
   const client = new Client({
     intents: options.intents,
     partials: options.partials,

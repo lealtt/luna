@@ -1,5 +1,5 @@
 import { logger } from "../system/logger.js";
-import settings from "#settings" with { type: "json" };
+import settings from "#settingsJson" with { type: "json" };
 import { z } from "zod";
 
 /**

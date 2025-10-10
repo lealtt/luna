@@ -46,7 +46,7 @@
     "#discord/middlewares": "./dist/discord/middlewares/index.js",
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js",
-    "#emojis": "./emojis.json",
-    "#settings": "./settings.json"
+    "#emojisJson": "./emojis.json",
+    "#settingsJson": "./settings.json"
   }
 }
