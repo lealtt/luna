@@ -2,29 +2,38 @@
 .git
 .gitignore
 
-# Node modules
+# Node modules & cache
 node_modules
 .pnpm-store
 
-# TypeScript and build files
+# Source & configs
 src
 tsconfig.json
 tsup.config.ts
+.env.example
+.env.dev
 
-# Lint and formatting config
+# Linting & formatting
 eslint.config.js
 prettier.config.js
+.prettierrc
 .prettierignore
 
-# Development scripts
+# Editor
 .devcontainer
 .vscode
 *.test.ts
 *.spec.ts
 
-# Logs and temporary files
+# Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Docs
+README.md
+LICENSE
+Dockerfile
+docker-compose.yml
