@@ -8,7 +8,7 @@ import {
   TextInputStyle,
   time,
 } from "discord.js";
-import { createEmbed, createModal, createTextInput } from "#discord/builders";
+import { createEmbed, createLabel, createModal, createTextInput } from "#discord/builders";
 
 createCommand({
   name: "profile",
@@ -81,7 +81,6 @@ createCommand({
 
         const aboutMeInput = createTextInput({
           customId: "profile/about",
-          label: t(locale, "profile.about_modal_label"),
           placeholder: t(locale, "profile.about_modal_placeholder"),
           style: TextInputStyle.Paragraph,
           maxLength: 200,
@@ -89,10 +88,15 @@ createCommand({
           value: userDoc.about ?? "",
         });
 
+        const aboutMeLabel = createLabel({
+          label: t(locale, "profile.about_modal_label"),
+          component: aboutMeInput,
+        });
+
         const profileModal = createModal({
           customId: `profile/set/${user.id}`,
           title: t(locale, "profile.about_modal_title"),
-          components: [aboutMeInput],
+          components: [aboutMeLabel],
         });
 
         await interaction.showModal(profileModal);

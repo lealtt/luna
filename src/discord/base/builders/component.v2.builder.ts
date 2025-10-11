@@ -1,15 +1,22 @@
 import {
   ActionRowBuilder,
   ButtonBuilder,
+  ChannelSelectMenuBuilder,
   ContainerBuilder,
   FileBuilder,
+  LabelBuilder,
   MediaGalleryBuilder,
   MediaGalleryItemBuilder,
+  MentionableSelectMenuBuilder,
+  RoleSelectMenuBuilder,
   SectionBuilder,
   SeparatorBuilder,
   SeparatorSpacingSize,
+  StringSelectMenuBuilder,
   TextDisplayBuilder,
+  TextInputBuilder,
   ThumbnailBuilder,
+  UserSelectMenuBuilder,
   type MessageActionRowComponentBuilder,
 } from "discord.js";
 
@@ -125,6 +132,16 @@ export function createMediaGallery(options: MediaGalleryOptions): MediaGalleryBu
   return new MediaGalleryBuilder().addItems(...galleryItems);
 }
 
+// Map that associates a component's constructor with the correct method on ContainerBuilder.
+const containerComponentHandlerMap = new Map<any, keyof ContainerBuilder>([
+  [SectionBuilder, "addSectionComponents"],
+  [TextDisplayBuilder, "addTextDisplayComponents"],
+  [SeparatorBuilder, "addSeparatorComponents"],
+  [FileBuilder, "addFileComponents"],
+  [MediaGalleryBuilder, "addMediaGalleryComponents"],
+  [ActionRowBuilder, "addActionRowComponents"],
+]);
+
 /**
  * Creates a Container component.
  */
@@ -135,20 +152,71 @@ export function createContainer(options: ContainerOptions): ContainerBuilder {
   }
 
   for (const component of options.components) {
-    if (component instanceof SectionBuilder) {
-      container.addSectionComponents(component);
-    } else if (component instanceof TextDisplayBuilder) {
-      container.addTextDisplayComponents(component);
-    } else if (component instanceof SeparatorBuilder) {
-      container.addSeparatorComponents(component);
-    } else if (component instanceof FileBuilder) {
-      container.addFileComponents(component);
-    } else if (component instanceof MediaGalleryBuilder) {
-      container.addMediaGalleryComponents(component);
-    } else if (component instanceof ActionRowBuilder) {
-      container.addActionRowComponents(component);
+    // Find the correct handler by checking the component's type against our map.
+    for (const [Builder, methodName] of containerComponentHandlerMap.entries()) {
+      if (component instanceof Builder) {
+        // Dynamically call the correct method (e.g., container.addSectionComponents(component))
+        (container[methodName] as (comp: any) => ContainerBuilder)(component);
+        break; // Stop searching once the correct handler is found.
+      }
     }
   }
 
   return container;
+}
+
+// A union type for all components that can be attached to a Label.
+type LabelableComponent =
+  | StringSelectMenuBuilder
+  | UserSelectMenuBuilder
+  | RoleSelectMenuBuilder
+  | ChannelSelectMenuBuilder
+  | MentionableSelectMenuBuilder
+  | TextInputBuilder;
+
+/**
+ * Options for creating a Label component.
+ */
+interface CreateLabelOptions {
+  label: string;
+  component: LabelableComponent;
+  description?: string;
+}
+
+// Map that associates a component's constructor with the correct method on LabelBuilder.
+const labelComponentHandlerMap = new Map<any, keyof LabelBuilder>([
+  [StringSelectMenuBuilder, "setStringSelectMenuComponent"],
+  [UserSelectMenuBuilder, "setUserSelectMenuComponent"],
+  [RoleSelectMenuBuilder, "setRoleSelectMenuComponent"],
+  [ChannelSelectMenuBuilder, "setChannelSelectMenuComponent"],
+  [MentionableSelectMenuBuilder, "setMentionableSelectMenuComponent"],
+  [TextInputBuilder, "setTextInputComponent"],
+]);
+
+/**
+ * A simple factory function for creating and configuring a LabelBuilder.
+ * Labels are used to group a text label with a single component, like a select menu or text input.
+ *
+ * @param options The options for the label.
+ * @returns A configured LabelBuilder instance.
+ */
+export function createLabel(options: CreateLabelOptions): LabelBuilder {
+  const { label, component, description } = options;
+
+  const labelBuilder = new LabelBuilder().setLabel(label);
+
+  if (description) {
+    labelBuilder.setDescription(description);
+  }
+
+  // Find the correct handler by checking the component's type against our map.
+  for (const [Builder, methodName] of labelComponentHandlerMap.entries()) {
+    if (component instanceof Builder) {
+      // Dynamically call the correct method
+      (labelBuilder[methodName] as (comp: any) => LabelBuilder)(component);
+      break; // Stop searching once the correct handler is found.
+    }
+  }
+
+  return labelBuilder;
 }

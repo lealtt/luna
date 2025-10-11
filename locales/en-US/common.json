@@ -57,6 +57,9 @@
           "description": "Set your custom 'About Me' description."
         }
       }
+    },
+    "form": {
+      "description": "Apply to become a staff member."
     }
   },
   "ping": {
@@ -149,6 +152,24 @@
       "kick_success": "Successfully kicked {{user}} (simulation).",
       "ban_success": "Successfully banned {{user}} (simulation)."
     }
+  },
+  "staff_apply": {
+    "modal_instructions": "Please fill out the application form below with as much detail as possible.",
+    "experience_label": "What is your moderation experience?",
+    "experience_placeholder": "Describe your past experience as a staff member on other platforms or communities.",
+    "motivation_label": "Why do you want to be staff here?",
+    "motivation_placeholder": "Explain what motivates you to join our staff team and what you hope to contribute.",
+    "availability_label": "What is your availability?",
+    "availability_placeholder": "Select your primary availability",
+    "availability_options": {
+      "mornings": "Weekdays - Mornings",
+      "afternoons": "Weekdays - Afternoons",
+      "evenings": "Weekdays - Evenings",
+      "weekends": "Weekends - Full Day",
+      "flexible": "Flexible / Anytime"
+    },
+    "modal_title": "Staff Application",
+    "success_message": "Thank you for applying! We have received your application and will review it shortly."
   },
   "common_errors": {
     "generic": "An unexpected error occurred. Please try again later.",

@@ -57,6 +57,9 @@
           "description": "Defina sua descrição 'Sobre Mim' personalizada."
         }
       }
+    },
+    "form": {
+      "description": "Candidate-se para se tornar um membro da equipe."
     }
   },
   "ping": {
@@ -149,6 +152,24 @@
       "kick_success": "{{user}} foi expulso com sucesso (simulação).",
       "ban_success": "{{user}} foi banido com sucesso (simulação)."
     }
+  },
+  "staff_apply": {
+    "modal_instructions": "Por favor, preencha o formulário de candidatura abaixo com o máximo de detalhes possível.",
+    "experience_label": "Qual é a sua experiência com moderação?",
+    "experience_placeholder": "Descreva sua experiência anterior como membro da equipe em outras plataformas ou comunidades.",
+    "motivation_label": "Por que você quer fazer parte da equipe aqui?",
+    "motivation_placeholder": "Explique o que o motiva a se juntar à nossa equipe e o que você espera contribuir.",
+    "availability_label": "Qual é a sua disponibilidade?",
+    "availability_placeholder": "Selecione sua disponibilidade principal",
+    "availability_options": {
+      "mornings": "Dias de semana - Manhãs",
+      "afternoons": "Dias de semana - Tardes",
+      "evenings": "Dias de semana - Noites",
+      "weekends": "Fins de semana - Dia inteiro",
+      "flexible": "Flexível / Qualquer horário"
+    },
+    "modal_title": "Candidatura para a Equipe",
+    "success_message": "Obrigado por se candidatar! Recebemos sua candidatura e a analisaremos em breve."
   },
   "common_errors": {
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",

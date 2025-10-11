@@ -8,9 +8,7 @@ const guildTags = new Map<string, Map<string, { content: string; authorId: strin
 const TagFlagsSchema = z.object({
   create: z.string().optional(),
   delete: z.string().optional(),
-  list: z
-    .preprocess((val) => val === "true", z.boolean())
-    .optional(),
+  list: z.preprocess((val) => val === "true", z.boolean()).optional(),
   content: z.string().optional(),
   name: z.string().optional(),
 });

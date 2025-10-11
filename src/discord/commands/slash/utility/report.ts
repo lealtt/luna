@@ -1,4 +1,4 @@
-import { createTextInput, createModal } from "#discord/builders";
+import { createModal, createTextInput } from "#discord/builders";
 import { createCommand } from "#discord/creators";
 import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, TextInputStyle } from "discord.js";
@@ -12,16 +12,16 @@ createCommand({
     const { user, locale } = interaction;
 
     const subjectInput = createTextInput({
-      customId: "report/subject",
       label: t(locale, "report.subject_label"),
+      customId: "report/subject",
       placeholder: t(locale, "report.subject_placeholder"),
       style: TextInputStyle.Short,
       maxLength: 100,
     });
 
     const descriptionInput = createTextInput({
-      customId: "report/description",
       label: t(locale, "report.description_label"),
+      customId: "report/description",
       placeholder: t(locale, "report.description_placeholder"),
       style: TextInputStyle.Paragraph,
       maxLength: 2000,
