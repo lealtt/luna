@@ -7,6 +7,7 @@ import { MessageFlags, userMention } from "discord.js";
 createComponent({
   customId: "like/{stateId}",
   type: ComponentInteractionType.Button,
+  cached: "cached",
   async run(interaction, { stateId }) {
     const { locale } = interaction;
 

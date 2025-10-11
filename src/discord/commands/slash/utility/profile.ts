@@ -44,7 +44,7 @@ createCommand({
       case "view": {
         const targetUser = options.getUser("user") ?? user;
         const userDoc = await models.users.findOrCreate(targetUser.id);
-        const member = await userDoc.fetchMember(guild!);
+        const member = await userDoc.fetchMember(guild);
 
         const embed = createEmbed({
           author: {

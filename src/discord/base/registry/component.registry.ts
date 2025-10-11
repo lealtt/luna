@@ -7,6 +7,7 @@ import {
   RoleSelectMenuInteraction,
   StringSelectMenuInteraction,
   UserSelectMenuInteraction,
+  type CacheType,
 } from "discord.js";
 import type { z } from "zod";
 
@@ -39,29 +40,36 @@ type ExtractParams<T extends string> = {
 /**
  * Infers the correct discord.js interaction type from our custom enum.
  */
-type InteractionForType<T extends ComponentInteractionType> =
-  T extends ComponentInteractionType.Modal
-    ? ModalSubmitInteraction
-    : T extends ComponentInteractionType.Button
-      ? ButtonInteraction
-      : T extends ComponentInteractionType.StringSelect
-        ? StringSelectMenuInteraction
-        : T extends ComponentInteractionType.UserSelect
-          ? UserSelectMenuInteraction
-          : T extends ComponentInteractionType.RoleSelect
-            ? RoleSelectMenuInteraction
-            : T extends ComponentInteractionType.ChannelSelect
-              ? ChannelSelectMenuInteraction
-              : T extends ComponentInteractionType.MentionableSelect
-                ? MentionableSelectMenuInteraction
-                : MessageComponentInteraction;
+type InteractionForType<
+  T extends ComponentInteractionType,
+  C extends CacheType = "raw",
+> = T extends ComponentInteractionType.Modal
+  ? ModalSubmitInteraction<C>
+  : T extends ComponentInteractionType.Button
+    ? ButtonInteraction<C>
+    : T extends ComponentInteractionType.StringSelect
+      ? StringSelectMenuInteraction<C>
+      : T extends ComponentInteractionType.UserSelect
+        ? UserSelectMenuInteraction<C>
+        : T extends ComponentInteractionType.RoleSelect
+          ? RoleSelectMenuInteraction<C>
+          : T extends ComponentInteractionType.ChannelSelect
+            ? ChannelSelectMenuInteraction<C>
+            : T extends ComponentInteractionType.MentionableSelect
+              ? MentionableSelectMenuInteraction<C>
+              : MessageComponentInteraction<C>;
 
 /**
  * Base interface with common properties for all components.
  */
-interface BaseComponent<T_ID extends string, T_Type extends ComponentInteractionType> {
+interface BaseComponent<
+  T_ID extends string,
+  T_Type extends ComponentInteractionType,
+  C extends CacheType,
+> {
   customId: T_ID;
   type: T_Type | T_Type[];
+  cached?: C;
 }
 
 /**
@@ -71,9 +79,13 @@ export interface ComponentWithSchema<
   T_ID extends string,
   T_Type extends ComponentInteractionType,
   T_Schema extends z.ZodObject<any>,
-> extends BaseComponent<T_ID, T_Type> {
+  C extends CacheType, // Pass generic down
+> extends BaseComponent<T_ID, T_Type, C> {
   paramsSchema: T_Schema;
-  run: (interaction: InteractionForType<T_Type>, params: z.infer<T_Schema>) => any | Promise<any>;
+  run: (
+    interaction: InteractionForType<T_Type, C>,
+    params: z.infer<T_Schema>,
+  ) => any | Promise<any>;
 }
 
 /**
@@ -82,10 +94,11 @@ export interface ComponentWithSchema<
 export interface ComponentWithoutSchema<
   T_ID extends string,
   T_Type extends ComponentInteractionType,
-> extends BaseComponent<T_ID, T_Type> {
+  C extends CacheType, // Pass generic down
+> extends BaseComponent<T_ID, T_Type, C> {
   paramsSchema?: never; // Ensures a schema cannot be passed here
   run: (
-    interaction: InteractionForType<T_Type>,
+    interaction: InteractionForType<T_Type, C>,
     params: Record<string, string | undefined> & ExtractParams<T_ID>,
   ) => any | Promise<any>;
 }
@@ -97,16 +110,18 @@ export type Component<
   T_ID extends string = string,
   T_Type extends ComponentInteractionType = ComponentInteractionType,
   T_Schema extends z.ZodObject<any> | undefined = undefined,
+  C extends CacheType = "raw", // Add generic to the main type
 > =
   T_Schema extends z.ZodObject<any>
-    ? ComponentWithSchema<T_ID, T_Type, T_Schema>
-    : ComponentWithoutSchema<T_ID, T_Type>;
+    ? ComponentWithSchema<T_ID, T_Type, T_Schema, C>
+    : ComponentWithoutSchema<T_ID, T_Type, C>;
 
 /** A generic type representing any component, used for the registry Map. */
 export type AnyComponent = Component<
   string,
   ComponentInteractionType,
-  z.ZodObject<any> | undefined
+  z.ZodObject<any> | undefined,
+  CacheType
 >;
 
 /** Component registry */

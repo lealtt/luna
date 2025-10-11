@@ -84,7 +84,7 @@ export async function handleAutocomplete(interaction: AutocompleteInteraction) {
   }
 
   try {
-    await command.autocomplete(interaction);
+    await command.autocomplete(interaction as AutocompleteInteraction<"cached">);
   } catch (error) {
     logger.error("Error in autocomplete handler:", error);
   }

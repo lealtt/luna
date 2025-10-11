@@ -56,6 +56,7 @@ type InvalidChatCommandChar =
   | "2"
   | "3"
   | "4"
+  | "4"
   | "5"
   | "6"
   | "7"
@@ -160,7 +161,7 @@ interface BaseCommandData {
 interface ChatInputCommandData extends BaseCommandData {
   description: string;
   options?: CommandOption[];
-  autocomplete?: (interaction: AutocompleteInteraction) => any | Promise<any>;
+  autocomplete?: (interaction: AutocompleteInteraction<"cached">) => any | Promise<any>;
 }
 
 // Maps our command type to the corresponding data interface.
@@ -168,14 +169,14 @@ type CommandData<T extends ApplicationCommandType> = T extends ApplicationComman
   ? ChatInputCommandData
   : BaseCommandData;
 
-// Maps the command type to the correct interaction type.
+// Maps the command type to the correct interaction type, now always 'cached'.
 type InteractionByType<T extends ApplicationCommandType> =
   T extends ApplicationCommandType.ChatInput
-    ? ChatInputCommandInteraction
+    ? ChatInputCommandInteraction<"cached">
     : T extends ApplicationCommandType.User
-      ? UserContextMenuCommandInteraction
+      ? UserContextMenuCommandInteraction<"cached">
       : T extends ApplicationCommandType.Message
-        ? MessageContextMenuCommandInteraction
+        ? MessageContextMenuCommandInteraction<"cached">
         : never;
 
 // The Command type is a combination of our clean interface and custom properties.
@@ -192,8 +193,11 @@ export type ChatInputCommand<TName extends string = string> =
   Command<ApplicationCommandType.ChatInput> & {
     name: ValidateChatCommandName<TName>;
   };
-export type UserContextMenuCommand = Command<ApplicationCommandType.User>;
-export type MessageContextMenuCommand = Command<ApplicationCommandType.Message>;
+export type UserContextMenuCommand<TName extends string = string> =
+  Command<ApplicationCommandType.User> & { name: TName };
+
+export type MessageContextMenuCommand<TName extends string = string> =
+  Command<ApplicationCommandType.Message> & { name: TName };
 
 // A union type representing any command.
 export type AnyCommand = ChatInputCommand | UserContextMenuCommand | MessageContextMenuCommand;

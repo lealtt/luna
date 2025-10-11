@@ -7,6 +7,7 @@ import { z } from "zod";
 createComponent({
   customId: "actions/{type}/{userid}",
   type: ComponentInteractionType.Button,
+  cached: "cached",
   paramsSchema: z.object({
     // The type of action must be one of the following values.
     type: z.enum(["kick", "ban", "timeout"]),

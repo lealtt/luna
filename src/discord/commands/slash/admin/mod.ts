@@ -8,7 +8,6 @@ import {
   InteractionContextType,
   MessageFlags,
   PermissionFlagsBits,
-  userMention,
 } from "discord.js";
 
 createCommand({
@@ -26,12 +25,12 @@ createCommand({
     },
   ],
   run(interaction) {
-    const { locale, options } = interaction;
+    const { locale, options, user } = interaction;
     const targetUser = options.getUser("user", true);
 
     interaction.reply({
       flags: [MessageFlags.Ephemeral],
-      content: t(locale, "mod.reply", { user: userMention(targetUser.id) }),
+      content: t(locale, "mod.reply", { user }),
       components: [
         createRow(
           createButton({

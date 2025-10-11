@@ -6,6 +6,7 @@ import { MessageFlags } from "discord.js";
 createComponent({
   customId: "report/{userId}",
   type: ComponentInteractionType.Modal,
+  cached: "cached",
   async run(interaction, { userId }) {
     const { fields, locale } = interaction;
 

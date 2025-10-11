@@ -7,6 +7,7 @@ import { MessageFlags } from "discord.js";
 createComponent({
   customId: "profile/set/{userId}",
   type: ComponentInteractionType.Modal,
+  cached: "cached",
   async run(interaction, { userId }) {
     const { fields, locale } = interaction;
     const aboutMeText = fields.getTextInputValue("profile/about");

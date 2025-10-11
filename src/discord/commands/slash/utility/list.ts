@@ -37,8 +37,6 @@ createCommand({
   async run(interaction) {
     const { locale, guild } = interaction;
 
-    if (!guild) return;
-
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     // Fetch all members from the server.
