@@ -1,4 +1,5 @@
-import { createPrefixCommand, createEmbed } from "#discord/creators";
+import { createEmbed } from "#discord/builders";
+import { createPrefixCommand } from "#discord/creators";
 import { colors } from "#utils";
 
 createPrefixCommand({

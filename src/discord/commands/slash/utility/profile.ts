@@ -1,4 +1,4 @@
-import { createCommand, createEmbed, createModal, createTextInput } from "#discord/creators";
+import { createCommand } from "#discord/creators";
 import { models } from "#database";
 import { t } from "#utils";
 import {
@@ -8,6 +8,7 @@ import {
   TextInputStyle,
   time,
 } from "discord.js";
+import { createEmbed, createModal, createTextInput } from "#discord/builders";
 
 createCommand({
   name: "profile",

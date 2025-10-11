@@ -1,4 +1,5 @@
-import { createCommand, createModal, createTextInput } from "#discord/creators";
+import { createTextInput, createModal } from "#discord/builders";
+import { createCommand } from "#discord/creators";
 import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, TextInputStyle } from "discord.js";
 

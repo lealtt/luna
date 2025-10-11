@@ -1,4 +1,5 @@
-import { createCommand, createEmbed } from "#discord/creators";
+import { createEmbed } from "#discord/builders";
+import { createCommand } from "#discord/creators";
 import { commandRegistry } from "#discord/registry";
 import { colors, type I18nKey, t } from "#utils";
 import {

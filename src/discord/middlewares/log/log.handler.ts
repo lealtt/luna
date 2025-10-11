@@ -1,4 +1,4 @@
-import { createEmbed } from "#discord/creators";
+import { createEmbed } from "#discord/builders";
 import { env, logger } from "#utils";
 import {
   type Client,

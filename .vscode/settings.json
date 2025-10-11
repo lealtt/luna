@@ -10,12 +10,13 @@
     "tasks": "Tasks",
     "base": "Core",
     "cli": "Console",
-    "dist": "Dist",
     "creators": "Ui",
     "registry": "Lottie",
     "luna": "Moon",
     "structures": "Custom",
-    "system": "Interface"
+    "system": "Interface",
+    "builders": "Webpack",
+    "loaders": "Config"
   },
   "material-icon-theme.files.associations": {
     "settings.json": "Raml",

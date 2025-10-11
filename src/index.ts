@@ -1,4 +1,4 @@
-import { lunaBootstrap } from "#discord";
+import { lunaBootstrap } from "#discord/bootstrap";
 import { GatewayIntentBits as Intents, Partials } from "discord.js";
 
 await lunaBootstrap({

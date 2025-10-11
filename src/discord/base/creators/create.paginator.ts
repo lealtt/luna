@@ -12,7 +12,7 @@ import {
   paginatorRegistry,
   type PaginatorFormatPage,
 } from "#discord/registry";
-import { createRow, createButton } from "./create.builders.js";
+import { createRow, createButton } from "#discord/builders";
 import { paginatorState } from "#states";
 import { t } from "#utils";
 

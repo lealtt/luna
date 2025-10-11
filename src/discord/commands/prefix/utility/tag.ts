@@ -1,15 +1,16 @@
 import { createPrefixCommand } from "#discord/creators";
-import { t } from "#utils";
 import { PermissionFlagsBits, inlineCode } from "discord.js";
 import { z } from "zod";
+import { t } from "#utils";
 
 const guildTags = new Map<string, Map<string, { content: string; authorId: string }>>();
 
-// Zod schema to define the command's flags.
 const TagFlagsSchema = z.object({
   create: z.string().optional(),
   delete: z.string().optional(),
-  list: z.boolean().optional(),
+  list: z
+    .preprocess((val) => val === "true", z.boolean())
+    .optional(),
   content: z.string().optional(),
   name: z.string().optional(),
 });
@@ -17,7 +18,6 @@ const TagFlagsSchema = z.object({
 createPrefixCommand({
   name: "tag",
   aliases: ["t"],
-  guilds: ["DEV_GUILD_ID" /* Example */],
   flags: {
     schema: TagFlagsSchema,
     config: {
