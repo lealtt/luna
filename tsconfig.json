@@ -26,7 +26,8 @@
       "#database": ["database/index.ts"],
       "#utils": ["utils/index.ts"],
       "#emojisJson": ["../emojis.json"],
-      "#settingsJson": ["../settings.json"]
+      "#settingsJson": ["../settings.json"],
+      "#enJson": ["../locales/en-US/common.json"]
     }
   },
   "include": ["./**/*.ts"],

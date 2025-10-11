@@ -50,6 +50,7 @@
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js",
     "#emojisJson": "./emojis.json",
-    "#settingsJson": "./settings.json"
+    "#settingsJson": "./settings.json",
+    "#enJson": "./locales/en-US/common.json"
   }
 }

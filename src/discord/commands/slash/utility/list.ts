@@ -4,6 +4,7 @@ import { t } from "#utils";
 import {
   ApplicationCommandType,
   InteractionContextType,
+  MessageFlags,
   type EmbedBuilder,
   type Locale,
 } from "discord.js";
@@ -30,23 +31,34 @@ function formatUserListPage(
 
 createCommand({
   name: "list",
-  description: "Displays a paginated list of items.",
+  description: "Displays a paginated list of all server members.",
   type: ApplicationCommandType.ChatInput,
   contexts: [InteractionContextType.Guild],
-  run(interaction) {
-    const { locale } = interaction;
-    const mockUsers = Array.from({ length: 25 }, (_, i) => `User ${i + 1}`);
+  async run(interaction) {
+    const { locale, guild } = interaction;
 
-    // Using the paginator.
+    if (!guild) return;
+
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    // Fetch all members from the server.
+    const members = await guild.members.fetch();
+
+    // Map the members to a numbered list of strings.
+    const memberList = Array.from(members.values()).map(
+      (member, index) => `${index + 1}. ${member.user.tag} (${member.displayName})`,
+    );
+
+    // Using the paginator with the real member list.
     const replyOptions = createPaginator({
-      paginatorId: "userList",
-      items: mockUsers,
-      itemsPerPage: 5,
+      paginatorId: "memberList",
+      items: memberList,
+      itemsPerPage: 10, // Increased for a better view
       user: interaction.user,
       formatPage: (pageItems, currentPage, totalPages) =>
         formatUserListPage(locale, pageItems, currentPage, totalPages),
     });
 
-    interaction.reply(replyOptions);
+    await interaction.followUp(replyOptions);
   },
 });

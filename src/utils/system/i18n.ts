@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { Locale } from "discord.js";
 import { logger } from "../system/logger.js";
-import type en from "../../../locales/en-US/common.json";
+import type en from "#enJson";
 
 /**
  * A recursive helper type that transforms a nested object into a union
@@ -35,10 +35,29 @@ const resources: Record<string, Record<string, any>> = {};
 let i18nInitialized = false;
 
 /**
+ * Default error messages in English to be used as a fallback.
+ */
+const defaultErrorMessages: Record<string, string> = {
+  "common_errors.generic": "An unexpected error occurred. Please try again later.",
+  "common_errors.cooldown":
+    "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
+  "common_errors.invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
+  "common_errors.guild_only": "This command can only be used in a server.",
+  "common_errors.missing_permissions":
+    "You are missing the required permissions for this command: `{{permissions}}`",
+  "common_errors.paginator_expired": "This is not for you or has expired!",
+  "common_errors.member_not_found": "Could not find the specified member in this server.",
+  "help.command_not_found": "I couldn't find that command.",
+};
+
+/**
  * Loads all translation files into memory. If the required directories or files
  * do not exist, it creates them to ensure type-safety and autocomplete.
  */
 export async function setupI18n() {
+  // Improvement: Add a guard to prevent re-initialization.
+  if (i18nInitialized) return;
+
   const localesDir = path.resolve(process.cwd(), "locales");
   const enUsDir = path.join(localesDir, Locale.EnglishUS);
   const enUsFile = path.join(enUsDir, "common.json");
@@ -64,12 +83,19 @@ export async function setupI18n() {
       const langPath = path.join(localesDir, lang, "common.json");
       try {
         const content = await fs.readFile(langPath, "utf-8");
+        // Improvement: Validate JSON to prevent crashes from malformed files.
         resources[lang] = JSON.parse(content);
-      } catch {
-        // This is now safe to ignore, as the base file is guaranteed to exist.
+      } catch (error) {
+        logger.error(`Failed to load or parse locale file for ${lang}:`, error);
+        resources[lang] = {}; // Fallback to an empty object on error.
       }
     }),
   );
+
+  // Improvement: Ensure the fallback language resource always exists.
+  if (!resources[fallbackLng]) {
+    resources[fallbackLng] = {};
+  }
 
   if (Object.keys(resources).length > 0) {
     i18nInitialized = true;
@@ -82,6 +108,14 @@ export async function setupI18n() {
 }
 
 /**
+ * Sanitizes a string by escaping Discord markdown characters.
+ * @param text The text to sanitize.
+ */
+function sanitize(text: string): string {
+  return text.replace(/([_*~`|>])/g, "\\$1");
+}
+
+/**
  * Gets a translated string for a given key.
  * @param lng The language to use.
  * @param key The key to look up (e.g., "ping.reply").
@@ -89,22 +123,41 @@ export async function setupI18n() {
  * @returns The translated string.
  */
 export function t(lng: string, key: I18nKey, variables?: Record<string, any>): string {
-  if (!i18nInitialized) return key as string;
+  let text: string | undefined;
 
-  const langFile = resources[lng] ?? resources[fallbackLng];
+  // Attempt to get the translation from JSON files if i18n is initialized.
+  if (i18nInitialized) {
+    // Improvement: Normalize language format for consistency, although discord.js provides it correctly.
+    const normalizedLng = lng.replace("_", "-");
+    const langFile = resources[normalizedLng] ?? resources[fallbackLng];
+    const foundText = (key as string)
+      .split(".")
+      .reduce<any>((acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined), langFile);
 
-  // Traverse nested keys safely
-  const text = (key as string)
-    .split(".")
-    .reduce<any>((acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined), langFile);
+    if (typeof foundText === "string") {
+      text = foundText;
+    }
+  }
 
-  if (typeof text !== "string") return key as string;
+  // If no translation was found, attempt to use the hardcoded fallback.
+  if (text === undefined) {
+    text = defaultErrorMessages[key as string];
+  }
+
+  // If still not found, return the key itself as a last resort.
+  if (text === undefined) {
+    return key as string;
+  }
+
+  // If text was found, interpolate variables like {{variable}}
   if (!variables) return text;
-
-  // Interpolate variables like {{variable}}
-  return text.replace(/{{(\w+)}}/g, (_, varName) =>
-    varName in variables ? String(variables[varName]) : "",
-  );
+  return text.replace(/{{(\w+)}}/g, (_, varName) => {
+    if (varName in variables) {
+      // Improvement: Sanitize interpolated values to prevent markdown injection.
+      return sanitize(String(variables[varName]));
+    }
+    return "";
+  });
 }
 
 /**
@@ -118,7 +171,9 @@ export function getLocalizations(key: I18nKey): Record<string, string> {
   for (const lang of supportedLngs) {
     if (lang === fallbackLng) continue;
     const translation = t(lang, key);
-    if (translation !== (key as string)) {
+    // Ensure we only add a localization if it's different from the key AND not a fallback message.
+    const fallbackMessage = defaultErrorMessages[key as string];
+    if (translation !== (key as string) && translation !== fallbackMessage) {
       localizations[lang.replace("_", "-")] = translation;
     }
   }
