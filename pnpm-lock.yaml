@@ -19,6 +19,9 @@ importers:
       mongoose:
         specifier: ^8.19.1
         version: 8.19.1
+      node-cron:
+        specifier: ^4.2.1
+        version: 4.2.1
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -32,6 +35,9 @@ importers:
       "@types/node":
         specifier: ^24.7.0
         version: 24.7.0
+      "@types/node-cron":
+        specifier: ^3.0.11
+        version: 3.0.11
       adm-zip:
         specifier: ^0.5.16
         version: 0.5.16
@@ -730,6 +736,12 @@ packages:
     resolution:
       {
         integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==,
+      }
+
+  "@types/node-cron@3.0.11":
+    resolution:
+      {
+        integrity: sha512-0ikrnug3/IyneSHqCBeslAhlK2aBfYek1fGo4bP4QnZPmiqSGRK+Oy7ZMisLWkesffJvQ1cqAcBnJC+8+nxIAg==,
       }
 
   "@types/node@24.7.0":
@@ -1674,6 +1686,13 @@ packages:
         integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==,
       }
 
+  node-cron@4.2.1:
+    resolution:
+      {
+        integrity: sha512-lgimEHPE/QDgFlywTd8yTR61ptugX3Qer29efeyWw2rv259HtGBNn1vZVmp8lB9uo9wC0t/AT4iGqXxia+CJFg==,
+      }
+    engines: { node: ">=6.0.0" }
+
   object-assign@4.1.1:
     resolution:
       {
@@ -2535,6 +2554,8 @@ snapshots:
 
   "@types/json-schema@7.0.15": {}
 
+  "@types/node-cron@3.0.11": {}
+
   "@types/node@24.7.0":
     dependencies:
       undici-types: 7.14.0
@@ -3118,6 +3139,8 @@ snapshots:
       thenify-all: 1.6.0
 
   natural-compare@1.4.0: {}
+
+  node-cron@4.2.1: {}
 
   object-assign@4.1.1: {}
 
