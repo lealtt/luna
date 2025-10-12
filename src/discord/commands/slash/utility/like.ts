@@ -7,7 +7,6 @@ import {
   ApplicationCommandType,
   ButtonStyle,
   InteractionContextType,
-  userMention,
 } from "discord.js";
 
 createCommand({
@@ -45,8 +44,8 @@ createCommand({
     // Send the message with the button.
     interaction.reply({
       content: t(locale, "like.reply_content", {
-        author: userMention(author.id),
-        target: userMention(targetUser.id),
+        author,
+        target: targetUser,
       }),
       components: [row],
     });

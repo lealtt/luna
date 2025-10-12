@@ -11,8 +11,12 @@ import {
   VoiceChannel,
   type Channel,
   type Client,
+  type MessageComponentInteraction,
+  type ModalSubmitInteraction,
 } from "discord.js";
 import type { CommandContext } from "#discord/base/middleware";
+
+type FinderContext = Client | CommandContext | MessageComponentInteraction | ModalSubmitInteraction;
 
 /**
  * A custom Promise class with additional chainable assertion methods.
@@ -102,15 +106,77 @@ class FinderPromise<T> extends Promise<T> {
 }
 
 /**
+ * Um wrapper para o resultado de uma busca síncrona, permitindo o uso de .notNull().
+ */
+class SyncWrapper<T> {
+  public readonly value: T | undefined;
+
+  constructor(value: T | undefined) {
+    this.value = value;
+  }
+
+  /**
+   * Asserts that the synchronously found value is not null or undefined.
+   * Throws an error if the value is null, otherwise returns the value.
+   */
+  notNull(): T {
+    if (this.value === null || this.value === undefined) {
+      throw new Error("Finder assertion failed: value is null or undefined.");
+    }
+    return this.value;
+  }
+}
+
+/**
+ * Handles the logic for synchronous (cache-only) lookups.
+ */
+class SyncFinderFactory {
+  private client: Client;
+  private id: string;
+
+  constructor(client: Client, id: string) {
+    this.client = client;
+    this.id = id;
+  }
+
+  user(): SyncWrapper<User> {
+    return new SyncWrapper(this.client.users.cache.get(this.id));
+  }
+
+  channel(): SyncWrapper<Channel> {
+    return new SyncWrapper(this.client.channels.cache.get(this.id));
+  }
+
+  guild(): SyncWrapper<Guild> {
+    return new SyncWrapper(this.client.guilds.cache.get(this.id));
+  }
+
+  member(guild: Guild): SyncWrapper<GuildMember> {
+    return new SyncWrapper(guild.members.cache.get(this.id));
+  }
+
+  role(guild: Guild): SyncWrapper<Role> {
+    return new SyncWrapper(guild.roles.cache.get(this.id));
+  }
+}
+
+/**
  * Handles the logic for fetching Discord entities.
  */
 class FinderFactory {
   private client: Client;
   private id: string;
 
-  constructor(context: Client | CommandContext, id: string) {
-    this.client = "client" in context ? context.client : context;
+  constructor(context: FinderContext, id: string) {
+    this.client = "client" in context ? context.client! : context;
     this.id = id;
+  }
+
+  /**
+   * Accesses synchronous cache-only methods.
+   */
+  sync(): SyncFinderFactory {
+    return new SyncFinderFactory(this.client, this.id);
   }
 
   /**
@@ -206,10 +272,15 @@ class FinderFactory {
  * @returns A FinderFactory instance to chain search methods from.
  *
  * @example
+ * // Async with assertion
  * const user = await Finder(interaction, userId).user().notNull();
- * const channel = await Finder(message, channelId).channel().textChannel();
- * const message = await Finder(client, msgId).message(channel).notNull();
+ *
+ * // Sync with assertion
+ * const cachedMember = Finder(interaction, memberId).sync().member(interaction.guild).notNull();
+ *
+ * // Sync without assertion
+ * const maybeRole = Finder(interaction, roleId).sync().role(interaction.guild).value;
  */
-export function Finder(context: Client | CommandContext, id: string) {
+export function Finder(context: FinderContext, id: string) {
   return new FinderFactory(context, id);
 }

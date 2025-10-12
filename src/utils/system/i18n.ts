@@ -108,14 +108,6 @@ export async function setupI18n() {
 }
 
 /**
- * Sanitizes a string by escaping Discord markdown characters.
- * @param text The text to sanitize.
- */
-function sanitize(text: string): string {
-  return text.replace(/([_*~`|>])/g, "\\$1");
-}
-
-/**
  * Gets a translated string for a given key.
  * @param lng The language to use.
  * @param key The key to look up (e.g., "ping.reply").
@@ -153,8 +145,7 @@ export function t(lng: string, key: I18nKey, variables?: Record<string, any>): s
   if (!variables) return text;
   return text.replace(/{{(\w+)}}/g, (_, varName) => {
     if (varName in variables) {
-      // Improvement: Sanitize interpolated values to prevent markdown injection.
-      return sanitize(String(variables[varName]));
+      return String(variables[varName]);
     }
     return "";
   });

@@ -8,7 +8,7 @@ import {
 import { createPrefixCommand } from "#discord/creators";
 import { checkPermissions } from "#discord/middlewares";
 import { Finder, colors, t } from "#utils";
-import { MessageFlags, ButtonStyle, userMention, PermissionFlagsBits } from "discord.js";
+import { MessageFlags, ButtonStyle, PermissionFlagsBits } from "discord.js";
 import { z } from "zod";
 
 const ModFlagsSchema = z.object({
@@ -72,7 +72,7 @@ createPrefixCommand({
     });
 
     const titleSection = createTextDisplay({
-      content: `### ${t(locale, "mod_panel.title", { user: userMention(memberToMod.id) })}`,
+      content: `### ${t(locale, "mod_panel.title", { user: memberToMod })}`,
     });
 
     const container = createContainer({
