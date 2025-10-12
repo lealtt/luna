@@ -5,18 +5,27 @@ import {
   type User,
   type ActionRowBuilder,
   type MessageActionRowComponentBuilder,
+  type EmbedBuilder,
 } from "discord.js";
-import { createComponent } from "./create.components.js";
-import {
-  ComponentInteractionType,
-  paginatorRegistry,
-  type PaginatorFormatPage,
-} from "#discord/registry";
 import { createRow, createButton } from "#discord/builders";
 import { paginatorState } from "#states";
 import { t } from "#utils";
+import { createComponent, ComponentInteractionType } from "./component.module.js";
 
-// Default emojis for the navigation buttons.
+/**
+ * Defines the shape of a function that formats a paginator page.
+ */
+export type PaginatorFormatPage<T> = (
+  pageItems: T[],
+  currentPage: number,
+  totalPages: number,
+) => EmbedBuilder;
+
+/**
+ * A registry to hold the format functions for different paginators.
+ */
+const paginatorRegistry = new Map<string, PaginatorFormatPage<any>>();
+
 const defaultEmojis = {
   first: "⏪",
   previous: "⬅️",
@@ -25,7 +34,6 @@ const defaultEmojis = {
   last: "⏩",
 };
 
-// Paginator options that will be stored.
 interface PaginatorOptions<T> {
   paginatorId: string;
   items: T[];
@@ -83,14 +91,12 @@ function createPaginatorButtons(
 
 /**
  * Creates a reusable paginator for displaying arrays of data.
- * This function also dynamically registers the component handler.
  * @param options The options to configure the paginator.
  * @returns An InteractionReplyOptions object ready to be sent.
  */
 export function createPaginator<T>(options: PaginatorOptions<T>): InteractionReplyOptions {
   const { paginatorId, items, itemsPerPage, user, formatPage, emojis } = options;
 
-  // Store the format function if it doesn't already exist.
   if (!paginatorRegistry.has(paginatorId)) {
     paginatorRegistry.set(paginatorId, formatPage);
   }
@@ -104,7 +110,6 @@ export function createPaginator<T>(options: PaginatorOptions<T>): InteractionRep
     paginatorId,
   };
 
-  // Create the initial state and get a unique ID.
   const stateId = paginatorState.set(initialState);
   const initialPageItems = items.slice(0, itemsPerPage);
   const embed = formatPage(initialPageItems, 1, totalPages);
@@ -119,11 +124,12 @@ export function createPaginator<T>(options: PaginatorOptions<T>): InteractionRep
 createComponent({
   customId: "paginator/{paginatorId}/{direction}/{stateId}",
   type: ComponentInteractionType.Button,
+  cached: "cached",
+  silent: true,
   async run(interaction, { paginatorId, direction, stateId }) {
     const formatPage = paginatorRegistry.get(paginatorId);
     const state = paginatorState.get(stateId);
 
-    // Check if the state is valid and if the interaction belongs to the original user.
     if (!formatPage || !state || interaction.user.id !== state.userId) {
       return interaction.reply({
         content: t(interaction.locale, "common_errors.paginator_expired"),
@@ -135,7 +141,6 @@ createComponent({
     const totalPages = Math.ceil(items.length / itemsPerPage);
     let newPage = state.currentPage;
 
-    // Calculate the new page number based on the direction of the clicked button.
     switch (direction) {
       case "first":
         newPage = 0;
@@ -154,12 +159,10 @@ createComponent({
         break;
     }
 
-    // Slice the items for the new page and format the embed.
     const pageItems = items.slice(newPage * itemsPerPage, (newPage + 1) * itemsPerPage);
     const embed = formatPage(pageItems, newPage + 1, totalPages);
     const components = [createPaginatorButtons(paginatorId, stateId, newPage, totalPages)];
 
-    // Update the state with the new page and update the original message.
     paginatorState.update(stateId, { ...state, currentPage: newPage });
     await interaction.update({ embeds: [embed], components });
   },

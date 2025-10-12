@@ -1,4 +1,4 @@
-import { createCommand } from "#discord/creators";
+import { createCommand } from "#discord/modules";
 import { models } from "#database";
 import { t } from "#utils";
 import {

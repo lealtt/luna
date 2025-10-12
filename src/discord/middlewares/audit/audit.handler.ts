@@ -11,8 +11,8 @@ import {
   ApplicationCommandType,
 } from "discord.js";
 
-// Options for the log embed
-interface LogEmbedOptions {
+// Options for the audit embed
+interface AuditEmbedOptions {
   user: User;
   guild: Guild | null;
   channel: TextBasedChannel | null;
@@ -25,11 +25,11 @@ interface LogEmbedOptions {
 }
 
 /**
- * Creates and sends a standardized log embed to the configured log channel.
+ * Creates and sends a standardized audit embed to the configured log channel.
  * @param client The Discord client instance.
- * @param options The data to include in the log embed.
+ * @param options The data to include in the audit embed.
  */
-export async function sendLogEmbed(client: Client, options: LogEmbedOptions) {
+export async function sendAuditEmbed(client: Client, options: AuditEmbedOptions) {
   if (!env.LOG_CHANNEL_ID) return;
 
   try {
@@ -49,7 +49,7 @@ export async function sendLogEmbed(client: Client, options: LogEmbedOptions) {
 
       const embed = createEmbed({
         author: { name: user.displayName, icon_url: user.displayAvatarURL() },
-        title: "Command Log",
+        title: "Command Audit Log",
         description: `Command ${commandMention} executed.`,
         color: "Blue",
         fields: [
@@ -73,6 +73,6 @@ export async function sendLogEmbed(client: Client, options: LogEmbedOptions) {
       await logChannel.send({ embeds: [embed] });
     }
   } catch (error) {
-    logger.error("Failed to send log embed:", error);
+    logger.error("Failed to send audit embed:", error);
   }
 }

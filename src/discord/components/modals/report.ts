@@ -1,6 +1,5 @@
-import { createComponent } from "#discord/creators";
+import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { t, logger } from "#utils";
-import { ComponentInteractionType } from "#discord/registry";
 import { MessageFlags } from "discord.js";
 
 createComponent({

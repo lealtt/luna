@@ -1,5 +1,5 @@
 import { createButton, createRow } from "#discord/builders";
-import { createCommand } from "#discord/creators";
+import { createCommand } from "#discord/modules";
 import { likeState } from "#states";
 import { t } from "#utils";
 import {

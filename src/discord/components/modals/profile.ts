@@ -1,7 +1,6 @@
-import { createComponent } from "#discord/creators";
+import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { models } from "#database";
 import { t } from "#utils";
-import { ComponentInteractionType } from "#discord/registry";
 import { MessageFlags } from "discord.js";
 
 createComponent({

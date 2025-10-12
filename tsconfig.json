@@ -15,12 +15,8 @@
     "paths": {
       "#states": ["discord/states/index.ts"],
       "#discord/bootstrap": ["discord/base/bootstrap.ts"],
-      "#discord/creators": ["discord/base/creators/index.ts"],
-      "#discord/registry": ["discord/base/registry/index.ts"],
-      "#discord/client": ["discord/base/client/index.ts"],
-      "#discord/base/middleware": ["discord/base/middleware/index.ts"],
+      "#discord/modules": ["discord/base/modules/index.ts"],
       "#discord/middlewares": ["discord/middlewares/index.ts"],
-      "#discord/loaders": ["discord/base/loaders/index.ts"],
       "#discord/handlers": ["discord/base/handlers/index.ts"],
       "#discord/builders": ["discord/base/builders/index.ts"],
       "#database": ["database/index.ts"],

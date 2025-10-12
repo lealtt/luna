@@ -1,13 +1,13 @@
 import { createEmbed } from "#discord/builders";
-import { createCommand } from "#discord/creators";
-import { logMessageContext } from "#discord/middlewares";
+import { createCommand } from "#discord/modules";
+import { auditMessageContext } from "#discord/middlewares";
 import { logger, t } from "#utils";
 import { ApplicationCommandType, MessageFlags } from "discord.js";
 
 createCommand({
   name: "Bookmark Message",
   type: ApplicationCommandType.Message,
-  middlewares: [logMessageContext],
+  middlewares: [auditMessageContext],
   async run(interaction) {
     const { locale } = interaction;
     const targetMessage = interaction.targetMessage;

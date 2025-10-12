@@ -14,7 +14,7 @@ import {
   type MessageComponentInteraction,
   type ModalSubmitInteraction,
 } from "discord.js";
-import type { CommandContext } from "#discord/base/middleware";
+import type { CommandContext } from "#discord/modules";
 
 type FinderContext = Client | CommandContext | MessageComponentInteraction | ModalSubmitInteraction;
 
@@ -106,7 +106,7 @@ class FinderPromise<T> extends Promise<T> {
 }
 
 /**
- * Um wrapper para o resultado de uma busca síncrona, permitindo o uso de .notNull().
+ * A wrapper for the result of a synchronous fetch, allowing the use of .notNull().
  */
 class SyncWrapper<T> {
   public readonly value: T | undefined;

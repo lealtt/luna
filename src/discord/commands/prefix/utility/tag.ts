@@ -1,4 +1,4 @@
-import { createPrefixCommand } from "#discord/creators";
+import { createPrefixCommand } from "#discord/modules";
 import { PermissionFlagsBits, inlineCode } from "discord.js";
 import { z } from "zod";
 import { t } from "#utils";

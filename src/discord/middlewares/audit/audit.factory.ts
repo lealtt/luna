@@ -1,19 +1,19 @@
-import type { CommandContext, Middleware } from "#discord/base/middleware";
-import { sendLogEmbed } from "./log.handler.js";
+import type { CommandContext, Middleware } from "#discord/modules";
+import { sendAuditEmbed } from "./audit.handler.js";
 
 /**
  * The type for the 'handler' function that extracts the options/arguments string
  * from a specific command context (T).
  */
-export type LogOptionsHandler<T extends CommandContext> = (context: T) => string;
+export type AuditOptionsHandler<T extends CommandContext> = (context: T) => string;
 
 /**
- * A factory for creating log middlewares.
+ * A factory for creating audit middlewares.
  * @param handler The function that extracts the specific details of the command.
- * @returns A complete and typed log middleware.
+ * @returns A complete and typed audit middleware.
  */
-export function createLogMiddleware<T extends CommandContext>(
-  handler: LogOptionsHandler<T>,
+export function createAuditMiddleware<T extends CommandContext>(
+  handler: AuditOptionsHandler<T>,
 ): Middleware<T> {
   return async (context, next) => {
     // Proceed to the next middleware or to the command's execution.
@@ -30,8 +30,8 @@ export function createLogMiddleware<T extends CommandContext>(
     // Use the provided handler to get the specific details.
     const optionsString = handler(context);
 
-    // Send the log embed.
-    await sendLogEmbed(context.client, {
+    // Send the audit embed.
+    await sendAuditEmbed(context.client, {
       user: "author" in context ? context.author : context.user,
       guild: context.guild,
       channel: context.channel,

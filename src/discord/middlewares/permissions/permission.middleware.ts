@@ -1,4 +1,4 @@
-import type { Middleware } from "#discord/base/middleware";
+import type { Middleware } from "#discord/modules";
 import { t } from "#utils";
 import { PermissionFlagsBits, type Message, type PermissionsString } from "discord.js";
 

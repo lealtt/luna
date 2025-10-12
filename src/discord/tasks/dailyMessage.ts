@@ -1,4 +1,4 @@
-import { createTask } from "#discord/creators";
+import { createTask } from "#discord/modules";
 import { Cron, env, Finder, logger } from "#utils";
 
 createTask({

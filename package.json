@@ -41,12 +41,8 @@
   "imports": {
     "#states": "./dist/discord/states/index.js",
     "#discord/bootstrap": "./dist/discord/base/bootstrap.js",
-    "#discord/creators": "./dist/discord/base/creators/index.js",
-    "#discord/registry": "./dist/discord/base/registry/index.js",
-    "#discord/client": "./dist/discord/base/client/index.js",
-    "#discord/base/middleware": "./dist/discord/base/middleware/index.js",
+    "#discord/modules": "./dist/discord/base/modules/index.js",
     "#discord/middlewares": "./dist/discord/middlewares/index.js",
-    "#discord/loaders": "./dist/discord/base/loaders/index.js",
     "#discord/handlers": "./dist/discord/base/handlers/index.js",
     "#discord/builders": "./dist/discord/base/builders/index.js",
     "#database": "./dist/database/index.js",

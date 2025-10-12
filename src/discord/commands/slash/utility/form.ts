@@ -5,7 +5,7 @@ import {
   createTextInput,
   createTextDisplay,
 } from "#discord/builders";
-import { createCommand } from "#discord/creators";
+import { createCommand } from "#discord/modules";
 import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, TextInputStyle } from "discord.js";
 

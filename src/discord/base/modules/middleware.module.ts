@@ -28,4 +28,27 @@ export type Middleware<T extends CommandContext = CommandContext> = (
   next: NextFunction,
 ) => Promise<void>;
 
-export * from "./runner.js";
+/**
+ * Executes a chain of middlewares and the final command logic for any context.
+ * @param context The interaction or message object.
+ * @param middlewares The array of middlewares to execute.
+ * @param finalHandler The final function to call (the command's run function).
+ */
+export async function runMiddlewareChain<T extends CommandContext>(
+  context: T,
+  middlewares: Middleware<T>[],
+  finalHandler: () => Promise<void>,
+) {
+  let index = -1;
+
+  const next: NextFunction = async () => {
+    index++;
+    if (index < middlewares.length) {
+      await middlewares[index](context, next);
+    } else {
+      await finalHandler();
+    }
+  };
+
+  await next();
+}

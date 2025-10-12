@@ -180,6 +180,9 @@
     "paginator_expired": "Este componente não é para você ou já expirou!",
     "optional_flags_title": "Flags Opcionais:",
     "invalid_user_format": "Formato de usuário inválido. Por favor, mencione um usuário ou forneça um ID.",
-    "member_not_found": "Não foi possível encontrar o membro especificado neste servidor."
+    "member_not_found": "Não foi possível encontrar o membro especificado neste servidor.",
+    "invalid_params": "Este componente recebeu parâmetros inválidos. Tente interagir com ele novamente.",
+    "no_handler": "Essa interação expirou ou não está mais ativa.",
+    "unknown_interaction": "Uma interação não reconhecida foi recebida. Se o problema persistir, entre em contato com o desenvolvedor."
   }
 }

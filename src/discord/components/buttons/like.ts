@@ -1,5 +1,4 @@
-import { createComponent } from "#discord/creators";
-import { ComponentInteractionType } from "#discord/registry";
+import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { likeState } from "#states";
 import { t } from "#utils";
 import { MessageFlags, userMention } from "discord.js";

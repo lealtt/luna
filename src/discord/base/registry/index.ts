@@ -1,6 +1,0 @@
-export * from "./event.registry.js";
-export * from "./command.registry.js";
-export * from "./component.registry.js";
-export * from "./task.registry.js";
-export * from "./prefix.command.registry.js";
-export * from "./paginator.registry.js";

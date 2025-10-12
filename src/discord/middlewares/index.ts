@@ -1,2 +1,2 @@
-export * from "./log/log.middleware.js";
-export * from "./perms/permission.middleware.js";
+export * from "./audit/audit.middleware.js";
+export * from "./permissions/permission.middleware.js";

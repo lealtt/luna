@@ -1,5 +1,5 @@
-import { createCommand } from "#discord/creators";
-import { logChatInput } from "#discord/middlewares";
+import { createCommand } from "#discord/modules";
+import { auditChatInput } from "#discord/middlewares";
 import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, MessageFlags } from "discord.js";
 
@@ -9,7 +9,7 @@ createCommand({
   type: ApplicationCommandType.ChatInput,
   contexts: [InteractionContextType.Guild],
   cooldown: 5,
-  middlewares: [logChatInput],
+  middlewares: [auditChatInput],
   run(interaction) {
     const { locale } = interaction;
 

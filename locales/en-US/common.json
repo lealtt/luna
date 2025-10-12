@@ -84,7 +84,7 @@
     "unknown_action": "Unknown action."
   },
   "mod_panel": {
-    "title": "Moderation Panel for {{user}}",
+    "title": "Moderation Panel for /{{user}}",
     "kick_description": "**Kick**: Removes the member from the server.",
     "ban_description": "**Ban**: Permanently removes the member.",
     "timeout_description": "**Timeout**: Prevents the member from interacting."
@@ -180,6 +180,9 @@
     "paginator_expired": "This is not for you or has expired!",
     "optional_flags_title": "Optional Flags:",
     "invalid_user_format": "Invalid user format. Please mention a user or provide an ID.",
-    "member_not_found": "Could not find the specified member in this server."
+    "member_not_found": "Could not find the specified member in this server.",
+    "invalid_params": "This component received invalid parameters. Please try interacting with it again.",
+    "no_handler": "This interactive component has expired or is no longer active.",
+    "unknown_interaction": "An unrecognized interaction was received. If this issue persists, please contact the developer."
   }
 }

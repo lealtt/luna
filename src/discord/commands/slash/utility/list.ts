@@ -1,5 +1,5 @@
 import { createEmbed } from "#discord/builders";
-import { createCommand, createPaginator } from "#discord/creators";
+import { createCommand, createPaginator } from "#discord/modules";
 import { t } from "#utils";
 import {
   ApplicationCommandType,

@@ -5,7 +5,7 @@ import {
   createContainer,
   LunaSeparators,
 } from "#discord/builders";
-import { createPrefixCommand } from "#discord/creators";
+import { createPrefixCommand } from "#discord/modules";
 import { checkPermissions } from "#discord/middlewares";
 import { Finder, colors, t } from "#utils";
 import { MessageFlags, ButtonStyle, PermissionFlagsBits } from "discord.js";

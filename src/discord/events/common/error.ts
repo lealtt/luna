@@ -1,4 +1,4 @@
-import { createEvent } from "#discord/creators";
+import { createEvent } from "#discord/modules";
 import { logger } from "#utils";
 import { Events } from "discord.js";
 
