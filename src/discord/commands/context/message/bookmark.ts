@@ -15,7 +15,7 @@ createCommand({
     const embed = createEmbed({
       author: {
         name: `From: ${targetMessage.author.displayName}`,
-        icon_url: targetMessage.author.displayAvatarURL(),
+        iconUrl: targetMessage.author.displayAvatarURL(),
       },
       description: targetMessage.content || t(locale, "bookmark.embed_no_content"),
       fields: [
@@ -27,7 +27,7 @@ createCommand({
       timestamp: targetMessage.createdAt.toISOString(),
       color: "Green",
       footer: {
-        text: `Bookmarked from #${(targetMessage.channel as any)?.name}`,
+        text: `Bookmarked from #${targetMessage.channel?.name}`,
       },
     });
 

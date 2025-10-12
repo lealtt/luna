@@ -34,14 +34,14 @@ createCommand({
 
     const row = createRow(
       createButton({
+        locale,
         customId: `like/${stateId}`,
-        label: t(locale, "like.button_label"),
+        labelI18nKey: "like.button_label",
         emoji: "❤️",
         style: ButtonStyle.Success,
       }),
     );
 
-    // Send the message with the button.
     interaction.reply({
       content: t(locale, "like.reply_content", {
         author,

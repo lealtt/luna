@@ -8,7 +8,7 @@ import {
   TextInputStyle,
   time,
 } from "discord.js";
-import { createEmbed, createLabel, createModal, createTextInput } from "#discord/builders";
+import { createEmbed, createModal, createTextInput } from "#discord/builders";
 
 createCommand({
   name: "profile",
@@ -49,7 +49,7 @@ createCommand({
         const embed = createEmbed({
           author: {
             name: t(locale, "profile.embed_author", { user: targetUser.username }),
-            icon_url: targetUser.displayAvatarURL(),
+            iconUrl: targetUser.displayAvatarURL(),
           },
           description: userDoc.about ?? t(locale, "profile.no_about_me"),
           fields: [
@@ -79,24 +79,22 @@ createCommand({
       case "set": {
         const userDoc = await models.users.findOrCreate(user.id);
 
-        const aboutMeInput = createTextInput({
+        const aboutMeInputRow = createTextInput({
+          locale,
           customId: "profile/about",
-          placeholder: t(locale, "profile.about_modal_placeholder"),
+          labelI18nKey: "profile.about_modal_label",
+          placeholderI18nKey: "profile.about_modal_placeholder",
           style: TextInputStyle.Paragraph,
           maxLength: 200,
           required: false,
           value: userDoc.about ?? "",
         });
 
-        const aboutMeLabel = createLabel({
-          label: t(locale, "profile.about_modal_label"),
-          component: aboutMeInput,
-        });
-
         const profileModal = createModal({
+          locale,
           customId: `profile/set/${user.id}`,
-          title: t(locale, "profile.about_modal_title"),
-          components: [aboutMeLabel],
+          titleI18nKey: "profile.about_modal_title",
+          components: [aboutMeInputRow],
         });
 
         await interaction.showModal(profileModal);

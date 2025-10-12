@@ -45,33 +45,40 @@ createPrefixCommand({
     }
 
     const kickSection = createSection({
-      text: [t(locale, "mod_panel.kick_description")],
+      locale,
+      text: [{ i18nKey: "mod_panel.kick_description" }],
       accessory: createButton({
+        locale,
         customId: `actions/kick/${memberToMod.id}`,
-        label: t(locale, "mod.kick_button"),
+        labelI18nKey: "mod.kick_button",
         style: ButtonStyle.Danger,
       }),
     });
 
     const banSection = createSection({
-      text: [t(locale, "mod_panel.ban_description")],
+      locale,
+      text: [{ i18nKey: "mod_panel.ban_description" }],
       accessory: createButton({
+        locale,
         customId: `actions/ban/${memberToMod.id}`,
-        label: t(locale, "mod.ban_button"),
+        labelI18nKey: "mod.ban_button",
         style: ButtonStyle.Danger,
       }),
     });
 
     const timeoutSection = createSection({
-      text: [t(locale, "mod_panel.timeout_description")],
+      locale,
+      text: [{ i18nKey: "mod_panel.timeout_description" }],
       accessory: createButton({
+        locale,
         customId: `actions/timeout/${memberToMod.id}`,
-        label: t(locale, "mod.timeout_button"),
+        labelI18nKey: "mod.timeout_button",
         style: ButtonStyle.Secondary,
       }),
     });
 
     const titleSection = createTextDisplay({
+      locale,
       content: `### ${t(locale, "mod_panel.title", { user: memberToMod })}`,
     });
 

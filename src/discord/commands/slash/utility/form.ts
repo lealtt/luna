@@ -2,11 +2,10 @@ import {
   createLabel,
   createModal,
   createStringSelectMenu,
-  createTextInput,
   createTextDisplay,
+  createTextInput,
 } from "#discord/builders";
 import { createCommand } from "#discord/modules";
-import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, TextInputStyle } from "discord.js";
 
 createCommand({
@@ -14,65 +13,66 @@ createCommand({
   description: "Apply to become a staff member.",
   type: ApplicationCommandType.ChatInput,
   contexts: [InteractionContextType.Guild],
-  run(interaction) {
+  async run(interaction) {
     const { locale } = interaction;
 
     const instructionsText = createTextDisplay({
-      content: t(locale, "staff_apply.modal_instructions"),
+      locale,
+      i18nKey: "staff_apply.modal_instructions",
     });
 
     const experienceInput = createTextInput({
-      label: t(locale, "staff_apply.experience_label"),
+      locale,
+      labelI18nKey: "staff_apply.experience_label",
       customId: "staff-apply/experience",
       style: TextInputStyle.Paragraph,
-      placeholder: t(locale, "staff_apply.experience_placeholder"),
+      placeholderI18nKey: "staff_apply.experience_placeholder",
       required: true,
     });
 
     const motivationInput = createTextInput({
-      label: t(locale, "staff_apply.motivation_label"),
+      locale,
+      labelI18nKey: "staff_apply.motivation_label",
       customId: "staff-apply/motivation",
       style: TextInputStyle.Paragraph,
-      placeholder: t(locale, "staff_apply.motivation_placeholder"),
+      placeholderI18nKey: "staff_apply.motivation_placeholder",
       required: true,
     });
 
     const availabilityLabel = createLabel({
-      label: t(locale, "staff_apply.availability_label"),
+      locale: locale,
+      i18nKey: "staff_apply.availability_label",
       component: createStringSelectMenu({
+        locale,
         customId: "staff-apply/availability",
-        placeholder: t(locale, "staff_apply.availability_placeholder"),
+        placeholderI18nKey: "staff_apply.availability_placeholder",
+        required: true,
         options: [
           {
-            label: t(locale, "staff_apply.availability_options.mornings"),
+            labelI18nKey: "staff_apply.availability_options.mornings",
             value: "weekdays_mornings",
           },
           {
-            label: t(locale, "staff_apply.availability_options.afternoons"),
+            labelI18nKey: "staff_apply.availability_options.afternoons",
             value: "weekdays_afternoons",
           },
           {
-            label: t(locale, "staff_apply.availability_options.evenings"),
+            labelI18nKey: "staff_apply.availability_options.evenings",
             value: "weekdays_evenings",
           },
-          {
-            label: t(locale, "staff_apply.availability_options.weekends"),
-            value: "weekends_full",
-          },
-          {
-            label: t(locale, "staff_apply.availability_options.flexible"),
-            value: "flexible",
-          },
+          { labelI18nKey: "staff_apply.availability_options.weekends", value: "weekends_full" },
+          { labelI18nKey: "staff_apply.availability_options.flexible", value: "flexible" },
         ],
       }),
     });
 
     const staffApplicationModal = createModal({
+      locale,
       customId: "staff-application-modal",
-      title: t(locale, "staff_apply.modal_title"),
+      titleI18nKey: "staff_apply.modal_title",
       components: [instructionsText, experienceInput, motivationInput, availabilityLabel],
     });
 
-    interaction.showModal(staffApplicationModal);
+    await interaction.showModal(staffApplicationModal);
   },
 });

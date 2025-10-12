@@ -51,7 +51,7 @@ createCommand({
     const replyOptions = createPaginator({
       paginatorId: "memberList",
       items: memberList,
-      itemsPerPage: 10, // Increased for a better view
+      itemsPerPage: 3,
       user: interaction.user,
       formatPage: (pageItems, currentPage, totalPages) =>
         formatUserListPage(locale, pageItems, currentPage, totalPages),

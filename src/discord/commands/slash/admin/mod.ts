@@ -25,27 +25,30 @@ createCommand({
     },
   ],
   run(interaction) {
-    const { locale, options, user } = interaction;
+    const { locale, options } = interaction;
     const targetUser = options.getUser("user", true);
 
     interaction.reply({
       flags: [MessageFlags.Ephemeral],
-      content: t(locale, "mod.reply", { user }),
+      content: t(locale, "mod.reply", { user: targetUser }),
       components: [
         createRow(
           createButton({
+            locale,
             customId: `actions/kick/${targetUser.id}`,
-            label: t(locale, "mod.kick_button"),
+            labelI18nKey: "mod.kick_button",
             style: ButtonStyle.Danger,
           }),
           createButton({
+            locale,
             customId: `actions/ban/${targetUser.id}`,
-            label: t(locale, "mod.ban_button"),
+            labelI18nKey: "mod.ban_button",
             style: ButtonStyle.Danger,
           }),
           createButton({
+            locale,
             customId: `actions/timeout/${targetUser.id}`,
-            label: t(locale, "mod.timeout_button"),
+            labelI18nKey: "mod.timeout_button",
             style: ButtonStyle.Secondary,
           }),
         ),

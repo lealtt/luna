@@ -1,17 +1,44 @@
-import { type ColorResolvable, type APIEmbed, EmbedBuilder } from "discord.js";
+import {
+  type ColorResolvable,
+  type APIEmbed,
+  type APIEmbedAuthor,
+  type APIEmbedFooter,
+  EmbedBuilder,
+} from "discord.js";
 
 /**
  * Extended color type that includes Discord's ColorResolvable
- * and general string colors (e.g., "#00ffcc").
+ * and general string colors ("#00ffcc").
  */
 export type FlexibleColor = ColorResolvable | (string & {});
 
 /**
- * A more flexible type for embed options, now supporting a single URL or an array of URLs for the image.
+ * A custom, developer-friendly interface for an embed author.
+ * Uses camelCase properties.
  */
-export type CreateEmbedOptions = Omit<APIEmbed, "color" | "image"> & {
+interface LunaEmbedAuthor extends Omit<APIEmbedAuthor, "icon_url" | "proxy_icon_url"> {
+  iconUrl?: string;
+  proxyIconUrl?: string;
+}
+
+/**
+ * A custom, developer-friendly interface for an embed footer.
+ * Uses camelCase properties.
+ */
+interface LunaEmbedFooter extends Omit<APIEmbedFooter, "icon_url" | "proxy_icon_url"> {
+  iconUrl?: string;
+  proxyIconUrl?: string;
+}
+
+/**
+ * A custom, developer-friendly interface for embed options.
+ * This interface uses camelCase for properties and introduces 'images' for gallery support.
+ */
+export type LunaEmbedOptions = Omit<APIEmbed, "color" | "image" | "author" | "footer"> & {
   color?: FlexibleColor;
-  image?: string | string[];
+  images?: string | string[];
+  author?: LunaEmbedAuthor | string;
+  footer?: LunaEmbedFooter;
 };
 
 /**
@@ -29,29 +56,54 @@ function applyFlexibleColor(embed: EmbedBuilder, color: FlexibleColor) {
 }
 
 /**
+ * Recursively converts object keys from camelCase to snake_case.
+ * This is used to transform our developer-friendly options into the format discord.js expects.
+ * @param obj The object to convert.
+ * @returns A new object with snake_case keys.
+ */
+function keysToSnakeCase(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((v) => keysToSnakeCase(v));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce((acc, key) => {
+      const snakeKey = key.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+      (acc as any)[snakeKey] = keysToSnakeCase(obj[key]);
+      return acc;
+    }, {});
+  }
+  return obj;
+}
+
+/**
  * Creates an array of EmbedBuilders for a multi-image gallery.
  */
-export function createEmbed(options: CreateEmbedOptions & { image: string[] }): EmbedBuilder[];
+export function createEmbed(options: LunaEmbedOptions & { images: string[] }): EmbedBuilder[];
 /**
  * Creates a single EmbedBuilder.
  */
-export function createEmbed(options: CreateEmbedOptions): EmbedBuilder;
+export function createEmbed(options: LunaEmbedOptions): EmbedBuilder;
 /**
  * A powerful factory function for creating one or more EmbedBuilders.
- * If 'image' is an array of URLs, it returns an array of embeds for a gallery.
- * @param options The options for the embed(s).
+ * If 'images' is an array of URLs, it returns an array of embeds for a gallery.
+ * @param options The developer-friendly options for the embed(s).
  * @returns A single EmbedBuilder or an array of EmbedBuilders.
  */
-export function createEmbed(options: CreateEmbedOptions): EmbedBuilder | EmbedBuilder[] {
-  const { image, color, ...rest } = options;
+export function createEmbed(options: LunaEmbedOptions): EmbedBuilder | EmbedBuilder[] {
+  const { images, color, ...rest } = options;
 
-  if (Array.isArray(image)) {
+  // Convert our camelCase options to the snake_case APIEmbed format
+  const apiOptions = keysToSnakeCase(rest) as APIEmbed;
+
+  // Handle author being just a string
+  if (typeof options.author === "string") apiOptions.author = { name: options.author };
+
+  if (Array.isArray(images)) {
     const embeds: EmbedBuilder[] = [];
-    const sharedUrl = rest.url ?? "https://discord.com";
+    const sharedUrl = apiOptions.url ?? "https://discord.com";
 
-    image.forEach((imageUrl, index) => {
+    images.forEach((imageUrl, index) => {
       const embed = new EmbedBuilder({
-        ...rest,
+        ...apiOptions,
         url: sharedUrl,
       }).setImage(imageUrl);
 
@@ -64,10 +116,10 @@ export function createEmbed(options: CreateEmbedOptions): EmbedBuilder | EmbedBu
     return embeds;
   }
 
-  const embed = new EmbedBuilder(rest);
+  const embed = new EmbedBuilder(apiOptions);
 
   if (color) applyFlexibleColor(embed, color);
-  if (image) embed.setImage(image);
+  if (images) embed.setImage(images); // handles single string case
 
   return embed;
 }

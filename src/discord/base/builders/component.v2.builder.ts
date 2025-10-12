@@ -19,11 +19,12 @@ import {
   UserSelectMenuBuilder,
   type MessageActionRowComponentBuilder,
 } from "discord.js";
+import { logger, t, type I18nKey } from "#utils";
 
 /**
- * A union type for all components that can be placed inside a Container.
+ * A union of all component builders that can be placed inside a Container.
  */
-type ContainerResolvableComponent =
+export type ContainerResolvableComponent =
   | TextDisplayBuilder
   | SectionBuilder
   | SeparatorBuilder
@@ -34,139 +35,12 @@ type ContainerResolvableComponent =
 /**
  * A union type for a Section's accessory, which can be a Thumbnail or a Button.
  */
-type SectionAccessory = ThumbnailBuilder | ButtonBuilder;
+export type SectionAccessory = ThumbnailBuilder | ButtonBuilder;
 
 /**
- * Options for creating a Section component.
+ * A union of all component builders that can be wrapped by a LabelBuilder.
  */
-type SectionOptions = {
-  text: string[];
-  accessory?: SectionAccessory;
-};
-
-/**
- * Options for creating a Container component.
- */
-type ContainerOptions = {
-  components: ContainerResolvableComponent[];
-  accentColor?: number;
-};
-
-/**
- * A collection of pre-built separator components for convenience.
- */
-export const LunaSeparators = {
-  Small: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
-  Large: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Large),
-  SmallLine: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
-  LargeLine: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Large).setDivider(true),
-};
-
-/**
- * Creates a Text Display component.
- */
-export function createTextDisplay(options: { content: string }): TextDisplayBuilder {
-  return new TextDisplayBuilder().setContent(options.content);
-}
-
-/**
- * Creates a File component.
- */
-export function createFile(options: { url: string }): FileBuilder {
-  return new FileBuilder().setURL(options.url);
-}
-
-/**
- * Creates a Thumbnail component.
- */
-export function createThumbnail(options: { url: string; description?: string }): ThumbnailBuilder {
-  const thumbnail = new ThumbnailBuilder().setURL(options.url);
-  if (options.description) {
-    thumbnail.setDescription(options.description);
-  }
-  return thumbnail;
-}
-
-/**
- * Creates a Section component.
- */
-export function createSection(options: SectionOptions): SectionBuilder {
-  const section = new SectionBuilder();
-
-  const textDisplays = options.text.map((t) => new TextDisplayBuilder().setContent(t));
-  section.addTextDisplayComponents(...textDisplays);
-
-  if (options.accessory) {
-    // Use a unique property ('setCustomId') to reliably identify a ButtonBuilder.
-    if ("setCustomId" in options.accessory) {
-      section.setButtonAccessory(options.accessory as ButtonBuilder);
-    } else {
-      section.setThumbnailAccessory(options.accessory as ThumbnailBuilder);
-    }
-  }
-
-  return section;
-}
-
-/**
- * Options for creating a Media Gallery component.
- */
-type MediaGalleryOptions = {
-  items: {
-    url: string;
-    description?: string;
-    spoiler?: boolean;
-  }[];
-};
-
-/**
- * Creates a Media Gallery component.
- */
-export function createMediaGallery(options: MediaGalleryOptions): MediaGalleryBuilder {
-  const galleryItems = options.items.map((item) => {
-    const galleryItem = new MediaGalleryItemBuilder().setURL(item.url);
-    if (item.description) galleryItem.setDescription(item.description);
-    if (item.spoiler) galleryItem.setSpoiler(item.spoiler);
-    return galleryItem;
-  });
-  return new MediaGalleryBuilder().addItems(...galleryItems);
-}
-
-// Map that associates a component's constructor with the correct method on ContainerBuilder.
-const containerComponentHandlerMap = new Map<any, keyof ContainerBuilder>([
-  [SectionBuilder, "addSectionComponents"],
-  [TextDisplayBuilder, "addTextDisplayComponents"],
-  [SeparatorBuilder, "addSeparatorComponents"],
-  [FileBuilder, "addFileComponents"],
-  [MediaGalleryBuilder, "addMediaGalleryComponents"],
-  [ActionRowBuilder, "addActionRowComponents"],
-]);
-
-/**
- * Creates a Container component.
- */
-export function createContainer(options: ContainerOptions): ContainerBuilder {
-  const container = new ContainerBuilder();
-  if (options.accentColor) {
-    container.setAccentColor(options.accentColor);
-  }
-
-  for (const component of options.components) {
-    // Find the correct handler by checking the component's type against our map.
-    for (const [Builder, methodName] of containerComponentHandlerMap.entries()) {
-      if (component instanceof Builder) {
-        // Dynamically call the correct method (e.g., container.addSectionComponents(component))
-        (container[methodName] as (comp: any) => ContainerBuilder)(component);
-        break; // Stop searching once the correct handler is found.
-      }
-    }
-  }
-
-  return container;
-}
-
-// A union type for all components that can be attached to a Label.
-type LabelableComponent =
+export type LabelableComponent =
   | StringSelectMenuBuilder
   | UserSelectMenuBuilder
   | RoleSelectMenuBuilder
@@ -175,47 +49,272 @@ type LabelableComponent =
   | TextInputBuilder;
 
 /**
- * Options for creating a Label component.
+ * Defines the options for creating a TextDisplay, allowing either raw content
+ * or an i18n key for translation.
  */
-interface CreateLabelOptions {
-  label: string;
-  component: LabelableComponent;
-  description?: string;
-}
-
-// Map that associates a component's constructor with the correct method on LabelBuilder.
-const labelComponentHandlerMap = new Map<any, keyof LabelBuilder>([
-  [StringSelectMenuBuilder, "setStringSelectMenuComponent"],
-  [UserSelectMenuBuilder, "setUserSelectMenuComponent"],
-  [RoleSelectMenuBuilder, "setRoleSelectMenuComponent"],
-  [ChannelSelectMenuBuilder, "setChannelSelectMenuComponent"],
-  [MentionableSelectMenuBuilder, "setMentionableSelectMenuComponent"],
-  [TextInputBuilder, "setTextInputComponent"],
-]);
+type TextOptions = { locale?: string } & (
+  | { content: string; i18nKey?: I18nKey }
+  | { content?: string; i18nKey: I18nKey }
+);
 
 /**
- * A simple factory function for creating and configuring a LabelBuilder.
- * Labels are used to group a text label with a single component, like a select menu or text input.
- *
+ * Defines the options for creating a Section component.
+ */
+export type SectionOptions = {
+  locale?: string;
+  text: string | string[] | TextOptions[];
+  accessory?: SectionAccessory;
+};
+
+/**
+ * Defines the options for creating a Container component.
+ */
+export interface ContainerOptions {
+  components: ContainerResolvableComponent[];
+  accentColor?: number;
+}
+
+/**
+ * Defines the options for creating a MediaGallery component.
+ */
+export interface MediaGalleryOptions {
+  locale?: string;
+  items: { url: string; description?: string; i18nKey?: I18nKey; spoiler?: boolean }[];
+}
+
+/**
+ * Defines the options for creating a LabelBuilder.
+ */
+export type CreateLabelOptions = {
+  locale?: string;
+  component: LabelableComponent;
+  description?: string;
+  descriptionI18nKey?: I18nKey;
+} & ({ label: string; i18nKey?: I18nKey } | { label?: string; i18nKey: I18nKey });
+
+/**
+ * A collection of pre-built SeparatorBuilder instances for convenience.
+ */
+export const LunaSeparators = {
+  Small: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small),
+  Large: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Large),
+  SmallLine: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Small).setDivider(true),
+  LargeLine: new SeparatorBuilder().setSpacing(SeparatorSpacingSize.Large).setDivider(true),
+} as const;
+
+/**
+ * A factory function for creating a TextDisplayBuilder.
+ * @param options The options for the text display.
+ * @returns A TextDisplayBuilder instance.
+ */
+export function createTextDisplay(options: TextOptions): TextDisplayBuilder {
+  const { locale = "en-US" } = options;
+  const translated = options.i18nKey ? t(locale, options.i18nKey) : undefined;
+  const content = translated && translated !== options.i18nKey ? translated : options.content;
+
+  if (!content) {
+    logger.error(`createTextDisplay: Failed to resolve content from i18nKey or fallback.`);
+    throw new Error("TextDisplay content cannot be empty.");
+  }
+  return new TextDisplayBuilder().setContent(content);
+}
+
+/**
+ * A factory function for creating a FileBuilder.
+ * @param options The options for the file component.
+ * @returns A FileBuilder instance.
+ */
+export function createFile(options: { url: string }): FileBuilder {
+  if (!options.url) {
+    logger.error("createFile: URL is required.");
+    throw new Error("File requires a valid URL.");
+  }
+  return new FileBuilder().setURL(options.url);
+}
+
+/**
+ * A factory function for creating a ThumbnailBuilder.
+ * @param options The options for the thumbnail.
+ * @returns A ThumbnailBuilder instance.
+ */
+export function createThumbnail(options: {
+  locale?: string;
+  url: string;
+  description?: string;
+  descriptionI18nKey?: I18nKey;
+}): ThumbnailBuilder {
+  const { locale = "en-US" } = options;
+  if (!options.url) {
+    logger.error("createThumbnail: URL is required.");
+    throw new Error("Thumbnail requires a valid URL.");
+  }
+  const builder = new ThumbnailBuilder().setURL(options.url);
+  if (options.description || options.descriptionI18nKey) {
+    const translated = options.descriptionI18nKey
+      ? t(locale, options.descriptionI18nKey)
+      : undefined;
+    const description =
+      translated && translated !== options.descriptionI18nKey ? translated : options.description;
+
+    if (description) {
+      builder.setDescription(description);
+    } else {
+      logger.warn(`createThumbnail: Description for "${options.url}" could not be resolved.`);
+    }
+  }
+  return builder;
+}
+
+/**
+ * A factory function for creating a SectionBuilder.
+ * @param options The options for the section.
+ * @returns A SectionBuilder instance.
+ */
+export function createSection(options: SectionOptions): SectionBuilder {
+  const { locale = "en-US" } = options;
+
+  if (!options.text || (Array.isArray(options.text) && options.text.length === 0)) {
+    logger.error("createSection: At least one text item is required.");
+    throw new Error("Section requires at least one text item.");
+  }
+
+  const section = new SectionBuilder();
+  const textItems = Array.isArray(options.text) ? options.text : [options.text];
+  const textDisplays = textItems.map((item) => {
+    if (typeof item === "string") {
+      return createTextDisplay({ locale, content: item });
+    }
+    return createTextDisplay({ locale, ...item });
+  });
+  section.addTextDisplayComponents(...textDisplays);
+
+  if (options.accessory) {
+    if (options.accessory instanceof ButtonBuilder) {
+      section.setButtonAccessory(options.accessory);
+    } else if (options.accessory instanceof ThumbnailBuilder) {
+      section.setThumbnailAccessory(options.accessory);
+    } else {
+      logger.error("createSection: Invalid accessory type.");
+      throw new Error("Section accessory must be a ButtonBuilder or ThumbnailBuilder.");
+    }
+  }
+  return section;
+}
+
+/**
+ * A factory function for creating a MediaGalleryBuilder.
+ * @param options The options for the media gallery.
+ * @returns A MediaGalleryBuilder instance.
+ */
+export function createMediaGallery(options: MediaGalleryOptions): MediaGalleryBuilder {
+  const { locale = "en-US" } = options;
+  if (!options.items || options.items.length === 0) {
+    logger.error("createMediaGallery: At least one item is required.");
+    throw new Error("MediaGallery requires at least one item.");
+  }
+
+  const galleryItems = options.items.map((item) => {
+    if (!item.url) {
+      throw new Error("MediaGallery item requires a valid URL.");
+    }
+    const galleryItem = new MediaGalleryItemBuilder().setURL(item.url);
+    const translated = item.i18nKey ? t(locale, item.i18nKey) : undefined;
+    const description = translated && translated !== item.i18nKey ? translated : item.description;
+    if (description) {
+      galleryItem.setDescription(description);
+    }
+    if (item.spoiler) galleryItem.setSpoiler(item.spoiler);
+    return galleryItem;
+  });
+
+  return new MediaGalleryBuilder().addItems(...galleryItems);
+}
+
+/**
+ * A factory function for creating a ContainerBuilder, which holds various v2 components.
+ * @param options The options for the container.
+ * @returns A ContainerBuilder instance.
+ */
+export function createContainer(options: ContainerOptions): ContainerBuilder {
+  if (!options.components || options.components.length === 0) {
+    logger.error("createContainer: At least one component is required.");
+    throw new Error("Container requires at least one component.");
+  }
+
+  const container = new ContainerBuilder();
+  if (options.accentColor) {
+    container.setAccentColor(options.accentColor);
+  }
+
+  for (const component of options.components) {
+    if (component instanceof SectionBuilder) {
+      container.addSectionComponents(component);
+    } else if (component instanceof TextDisplayBuilder) {
+      container.addTextDisplayComponents(component);
+    } else if (component instanceof SeparatorBuilder) {
+      container.addSeparatorComponents(component);
+    } else if (component instanceof FileBuilder) {
+      container.addFileComponents(component);
+    } else if (component instanceof MediaGalleryBuilder) {
+      container.addMediaGalleryComponents(component);
+    } else if (component instanceof ActionRowBuilder) {
+      container.addActionRowComponents(component);
+    } else {
+      logger.error("createContainer: Invalid component type provided.");
+      throw new Error("Unsupported component type in container.");
+    }
+  }
+  return container;
+}
+
+/**
+ * A factory function for creating a LabelBuilder, which associates a label and description
+ * with a single interactive component.
  * @param options The options for the label.
- * @returns A configured LabelBuilder instance.
+ * @returns A LabelBuilder instance.
  */
 export function createLabel(options: CreateLabelOptions): LabelBuilder {
-  const { label, component, description } = options;
+  const { locale = "en-US" } = options;
 
-  const labelBuilder = new LabelBuilder().setLabel(label);
+  if (!options.component) {
+    throw new Error("Label requires a component.");
+  }
 
+  const translatedLabel = options.i18nKey ? t(locale, options.i18nKey) : undefined;
+  const labelText =
+    translatedLabel && translatedLabel !== options.i18nKey ? translatedLabel : options.label;
+
+  if (!labelText) {
+    throw new Error("Label text could not be resolved and cannot be empty.");
+  }
+  const labelBuilder = new LabelBuilder().setLabel(labelText);
+
+  const translatedDesc = options.descriptionI18nKey
+    ? t(locale, options.descriptionI18nKey)
+    : undefined;
+  const description =
+    translatedDesc && translatedDesc !== options.descriptionI18nKey
+      ? translatedDesc
+      : options.description;
   if (description) {
     labelBuilder.setDescription(description);
   }
 
-  // Find the correct handler by checking the component's type against our map.
-  for (const [Builder, methodName] of labelComponentHandlerMap.entries()) {
-    if (component instanceof Builder) {
-      // Dynamically call the correct method
-      (labelBuilder[methodName] as (comp: any) => LabelBuilder)(component);
-      break; // Stop searching once the correct handler is found.
-    }
+  if (options.component instanceof StringSelectMenuBuilder) {
+    labelBuilder.setStringSelectMenuComponent(options.component);
+  } else if (options.component instanceof UserSelectMenuBuilder) {
+    labelBuilder.setUserSelectMenuComponent(options.component);
+  } else if (options.component instanceof RoleSelectMenuBuilder) {
+    labelBuilder.setRoleSelectMenuComponent(options.component);
+  } else if (options.component instanceof ChannelSelectMenuBuilder) {
+    labelBuilder.setChannelSelectMenuComponent(options.component);
+  } else if (options.component instanceof MentionableSelectMenuBuilder) {
+    labelBuilder.setMentionableSelectMenuComponent(options.component);
+  } else if (options.component instanceof TextInputBuilder) {
+    labelBuilder.setTextInputComponent(options.component);
+  } else {
+    logger.error("createLabel: Invalid component type for label.");
+    throw new Error("Unsupported component type for label.");
   }
 
   return labelBuilder;

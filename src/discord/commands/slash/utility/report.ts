@@ -1,6 +1,5 @@
 import { createModal, createTextInput } from "#discord/builders";
 import { createCommand } from "#discord/modules";
-import { t } from "#utils";
 import { ApplicationCommandType, InteractionContextType, TextInputStyle } from "discord.js";
 
 createCommand({
@@ -12,24 +11,29 @@ createCommand({
     const { user, locale } = interaction;
 
     const subjectInput = createTextInput({
-      label: t(locale, "report.subject_label"),
+      locale,
+      labelI18nKey: "report.subject_label",
       customId: "report/subject",
-      placeholder: t(locale, "report.subject_placeholder"),
+      placeholderI18nKey: "report.subject_placeholder",
       style: TextInputStyle.Short,
       maxLength: 100,
+      required: true,
     });
 
     const descriptionInput = createTextInput({
-      label: t(locale, "report.description_label"),
+      locale,
+      labelI18nKey: "report.description_label",
       customId: "report/description",
-      placeholder: t(locale, "report.description_placeholder"),
+      placeholderI18nKey: "report.description_placeholder",
       style: TextInputStyle.Paragraph,
       maxLength: 2000,
+      required: true,
     });
 
     const reportModal = createModal({
+      locale,
       customId: `report/${user.id}`,
-      title: t(locale, "report.modal_title"),
+      titleI18nKey: "report.modal_title",
       components: [subjectInput, descriptionInput],
     });
 

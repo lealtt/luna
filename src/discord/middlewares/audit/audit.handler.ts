@@ -48,7 +48,7 @@ export async function sendAuditEmbed(client: Client, options: AuditEmbedOptions)
       const commandMention = formatter ? formatter() : `?${command.name}`;
 
       const embed = createEmbed({
-        author: { name: user.displayName, icon_url: user.displayAvatarURL() },
+        author: { name: user.displayName, iconUrl: user.displayAvatarURL() },
         title: "Command Audit Log",
         description: `Command ${commandMention} executed.`,
         color: "Blue",
