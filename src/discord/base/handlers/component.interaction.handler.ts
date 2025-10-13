@@ -100,13 +100,33 @@ export async function handleComponentInteraction(
     return;
   }
 
-  // Get the static key from the interaction's custom ID.
   const staticKey = interaction.customId.split("/")[0];
-  const handler = componentRegistry.get(staticKey);
+  if (!staticKey) return;
+
+  const handlersForStaticKey = componentRegistry.get(staticKey);
+
+  if (!handlersForStaticKey) {
+    if (!interaction.replied && !interaction.deferred) {
+      logger.error(`No matching handler found for base custom ID: ${staticKey}`);
+      await sendErrorReply(interaction, "common_errors.no_handler");
+    }
+    return;
+  }
+
+  let handler: AnyComponent | undefined;
+  let rawParams: Record<string, string> | null = null;
+
+  for (const [pattern, componentHandler] of handlersForStaticKey.entries()) {
+    rawParams = matchCustomIdPattern(pattern, interaction.customId);
+    if (rawParams) {
+      handler = componentHandler;
+      break;
+    }
+  }
 
   if (!handler) {
     if (!interaction.replied && !interaction.deferred) {
-      logger.error(`No matching handler found for custom ID: ${interaction.customId}`);
+      logger.error(`No specific handler found for custom ID: ${interaction.customId}`);
       await sendErrorReply(interaction, "common_errors.no_handler");
     }
     return;
@@ -115,8 +135,6 @@ export async function handleComponentInteraction(
   const typeMatch = Array.isArray(handler.type)
     ? handler.type.includes(interactionType)
     : handler.type === interactionType;
-
-  const rawParams = matchCustomIdPattern(handler.customId, interaction.customId);
 
   if (!typeMatch || !rawParams) {
     if (!interaction.replied && !interaction.deferred) {

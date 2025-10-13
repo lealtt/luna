@@ -376,7 +376,13 @@ export function createMentionableSelectMenu(
  */
 export function createTextInput(options: CreateLabeledTextInputOptions): LabelBuilder {
   const { locale = "en-US", label, labelI18nKey, ...rest } = options;
-  const textInput = new TextInputBuilder(rest);
+
+  const textInputData = {
+    ...rest,
+    style: options.style ?? TextInputStyle.Short,
+  };
+
+  const textInput = new TextInputBuilder(textInputData);
 
   const translatedPlaceholder = options.placeholderI18nKey
     ? t(locale, options.placeholderI18nKey)

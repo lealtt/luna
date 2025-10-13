@@ -105,7 +105,7 @@ export type AnyComponent = Component<
   CacheType
 >;
 
-export const componentRegistry = new Map<string, AnyComponent>();
+export const componentRegistry = new Map<string, Map<string, AnyComponent>>();
 
 /**
  * Registers a component in the registry with validation and logging.
@@ -134,17 +134,27 @@ export function registerComponent(component: AnyComponent): void {
     );
   }
 
-  // Extract the static part of the customId to use as the key.
-  // e.g., "paginator/{id}" becomes "paginator"
   const staticKey = component.customId.split("/")[0];
 
-  if (componentRegistry.has(staticKey)) {
-    // If the key is already used, we can't reliably look it up.
-    // This could be refined to support multiple handlers for the same base key if needed.
-    throw new Error(`Component with base customId "${staticKey}" is already registered.`);
+  if (!staticKey) {
+    throw new Error(
+      `Component validation failed: Could not determine a static key for customId "${component.customId}".`,
+    );
   }
 
-  componentRegistry.set(staticKey, component);
+  if (!componentRegistry.has(staticKey)) {
+    componentRegistry.set(staticKey, new Map<string, AnyComponent>());
+  }
+
+  const subMap = componentRegistry.get(staticKey)!;
+
+  if (subMap.has(component.customId)) {
+    throw new Error(
+      `Component with exact customId "${component.customId}" is already registered under the key "${staticKey}".`,
+    );
+  }
+
+  subMap.set(component.customId, component);
 
   // Only log if the component is not marked as silent
   if (!component.silent) {
