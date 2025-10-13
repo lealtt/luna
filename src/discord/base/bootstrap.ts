@@ -47,7 +47,6 @@ interface BootstrapOptions {
   intents: GatewayIntentBits[];
   partials: Partials[];
   guilds?: string[];
-  useI18n?: boolean;
 }
 
 /**
@@ -55,10 +54,10 @@ interface BootstrapOptions {
  * This function orchestrates the entire startup sequence.
  */
 export async function lunaBootstrap(options: BootstrapOptions): Promise<void> {
-  const { intents, partials, guilds, useI18n } = options;
+  const { intents, partials, guilds } = options;
 
   try {
-    if (useI18n !== false) await setupI18n();
+    await setupI18n();
 
     const client = new Client({ intents, partials });
     client.commands = new Collection<string, AnyCommand>();

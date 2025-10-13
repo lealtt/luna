@@ -2,7 +2,8 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { Locale } from "discord.js";
 import { logger } from "../system/logger.js";
-import type en from "#enJson";
+import type enCommon from "#enJson";
+import type enCommands from "#enCommandsJson";
 
 // Recursive type for dot-notation keys
 type DotNestedKeys<T> = (
@@ -17,12 +18,11 @@ type DotNestedKeys<T> = (
   ? Extract<D, string>
   : never;
 
-// Type for i18n keys, defaulting to string if en is empty or file doesn't exist
-export type I18nKey = typeof en extends undefined
-  ? string
-  : keyof typeof en extends never
-    ? string
-    : DotNestedKeys<typeof en>;
+// Merge types from both en-US files for comprehensive type checking
+type MergedEN = typeof enCommon & typeof enCommands;
+
+// Type for i18n keys, generated from the merged English translation files
+export type I18nKey = DotNestedKeys<MergedEN>;
 
 // Supported and fallback locales
 const supportedLngs = [Locale.EnglishUS, Locale.PortugueseBR];
@@ -30,20 +30,6 @@ const fallbackLng = Locale.EnglishUS;
 
 // In-memory store for translations
 const resources: Record<string, Record<string, any>> = {};
-
-// Default error messages (fallback)
-const defaultErrorMessages: Record<string, string> = {
-  "common_errors.generic": "An unexpected error occurred. Please try again later.",
-  "common_errors.cooldown":
-    "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
-  "common_errors.invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
-  "common_errors.guild_only": "This command can only be used in a server.",
-  "common_errors.missing_permissions":
-    "You are missing the required permissions for this command: `{{permissions}}`",
-  "common_errors.paginator_expired": "This is not for you or has expired!",
-  "common_errors.member_not_found": "Could not find the specified member in this server.",
-  "help.command_not_found": "I couldn't find that command.",
-};
 
 /**
  * Safely checks if a file exists.
@@ -74,43 +60,46 @@ async function loadJsonFile(filePath: string): Promise<Record<string, any> | und
 }
 
 /**
- * Initializes the i18n system by loading translation files, if they exist.
- * If no files are found, or if the en-US file (#enJson) doesn't exist, the system
- * falls back to default messages or keys.
+ * Initializes the i18n system by loading and merging translation files.
+ * The system is now mandatory. If core files for the fallback language are missing,
+ * the application will exit.
  */
 export async function setupI18n() {
   // Clear resources to allow re-initialization
   Object.keys(resources).forEach((key) => delete resources[key]);
 
   const localesDir = path.resolve(process.cwd(), "locales");
-  const enUsFile = path.join(localesDir, Locale.EnglishUS, "common.json");
 
-  // Check if the en-US file (#enJson) exists
-  if (!(await fileExists(enUsFile))) {
-    logger.info("en-US translation file (#enJson) not found. Using default messages or keys.");
-  }
-
-  // Load translations for each supported language
+  // Load and merge translations for each supported language
   const loadPromises = supportedLngs.map(async (lang) => {
-    const langPath = path.join(localesDir, lang, "common.json");
-    const content = await loadJsonFile(langPath);
-    if (content) {
-      resources[lang] = content;
+    const commonPath = path.join(localesDir, lang, "common.json");
+    const commandsPath = path.join(localesDir, lang, "commands.json");
+
+    const commonContent = await loadJsonFile(commonPath);
+    const commandsContent = await loadJsonFile(commandsPath);
+
+    // Ensure the fallback language has all its files, as it's the source of truth
+    if (lang === fallbackLng && (!commonContent || !commandsContent)) {
+      logger.error(
+        `Core translation files for fallback language "${fallbackLng}" are missing. Exiting.`,
+      );
+      process.exit(1);
+    }
+
+    // Merge both files into one resource object for the language
+    if (commonContent || commandsContent) {
+      resources[lang] = { ...commonContent, ...commandsContent };
     }
   });
 
   await Promise.all(loadPromises);
 
-  // Ensure fallback language exists, even if empty
-  if (!resources[fallbackLng]) {
-    resources[fallbackLng] = {};
-  }
-
   const loadedLangs = Object.keys(resources);
   if (loadedLangs.length > 0) {
     logger.info(`Successfully loaded translations for: ${loadedLangs.join(", ")}`);
   } else {
-    logger.info("No translation files found. Using default messages or keys.");
+    logger.error("No translation files found. The i18n system is mandatory. Exiting.");
+    process.exit(1);
   }
 }
 
@@ -128,7 +117,7 @@ function getNestedValue(obj: Record<string, any>, key: string): string | undefin
  * @param lng The language to use (e.g., "en-US").
  * @param key The translation key (e.g., "ping.reply").
  * @param variables Optional variables for interpolation.
- * @returns The translated string, falling back to default messages or the key.
+ * @returns The translated string, falling back to the default language or the key itself.
  */
 export function t(lng: string, key: I18nKey, variables?: Record<string, any>): string {
   let text: string | undefined;
@@ -136,13 +125,21 @@ export function t(lng: string, key: I18nKey, variables?: Record<string, any>): s
   // Normalize language code (e.g., "en_US" to "en-US")
   const normalizedLng = lng.replace("_", "-");
 
-  // Try to get translation from resources
-  const langFile = resources[normalizedLng] ?? resources[fallbackLng];
+  // Try to get translation from the requested language's resources
+  const langFile = resources[normalizedLng];
   if (langFile) text = getNestedValue(langFile, key);
-  // Fallback to default error messages
-  if (text === undefined) text = defaultErrorMessages[key];
-  // Fallback to the key itself
-  if (text === undefined) text = key;
+
+  // Fallback to the default language if not found in the requested one
+  if (text === undefined && normalizedLng !== fallbackLng) {
+    const fallbackFile = resources[fallbackLng];
+    if (fallbackFile) text = getNestedValue(fallbackFile, key);
+  }
+
+  // If still not found, log a warning and return the key as a last resort
+  if (text === undefined) {
+    logger.warn(`Translation key not found: "${key}"`);
+    text = key;
+  }
 
   // Interpolate variables safely
   if (!variables) return text;
@@ -159,11 +156,16 @@ export function t(lng: string, key: I18nKey, variables?: Record<string, any>): s
  */
 export function getLocalizations(key: I18nKey): Record<string, string> {
   const localizations: Record<string, string> = {};
+  const fallbackText = getNestedValue(resources[fallbackLng], key);
+
   for (const lang of supportedLngs) {
     if (lang === fallbackLng) continue;
-    const translation = t(lang, key);
-    const fallbackMessage = defaultErrorMessages[key] ?? key;
-    if (translation !== key && translation !== fallbackMessage) {
+
+    const langFile = resources[lang];
+    const translation = langFile ? getNestedValue(langFile, key) : undefined;
+
+    // Add translation if it exists and is different from the fallback text
+    if (translation && translation !== fallbackText) {
       localizations[lang.replace("_", "-")] = translation;
     }
   }

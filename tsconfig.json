@@ -23,7 +23,8 @@
       "#utils": ["utils/index.ts"],
       "#emojisJson": ["../emojis.json"],
       "#settingsJson": ["../settings.json"],
-      "#enJson": ["../locales/en-US/common.json"]
+      "#enJson": ["../locales/en-US/common.json"],
+      "#enCommandsJson": ["../locales/en-US/commands.json"]
     }
   },
   "include": ["./**/*.ts"],

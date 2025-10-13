@@ -21,6 +21,7 @@
   "material-icon-theme.files.associations": {
     "settings.json": "Raml",
     "common.json": "i18n",
+    "commands.json": "i18n",
     "pnpm-lock.yaml": "lock"
   },
   "material-icon-theme.folders.theme": "specific",

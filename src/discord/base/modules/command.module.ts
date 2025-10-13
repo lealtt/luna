@@ -305,16 +305,12 @@ function localizeCommandOptions(basePath: string, options: CommandOption[]): any
       delete (apiOption as any).onAutocomplete;
     }
 
-    const optionNameKey = `${basePath}.options.${apiOption.name}.name` as I18nKey;
     const optionDescriptionKey = `${basePath}.options.${apiOption.name}.description` as I18nKey;
 
-    const translatedOptionName = t("en-US", optionNameKey);
-    const finalOptionName =
-      translatedOptionName === optionNameKey ? apiOption.name : translatedOptionName;
-
     let finalOptionDescription: string | undefined;
-    if ("description" in apiOption) {
+    if ("description" in apiOption && apiOption.description) {
       const translatedOptionDesc = t("en-US", optionDescriptionKey);
+
       finalOptionDescription =
         translatedOptionDesc === optionDescriptionKey
           ? apiOption.description
@@ -336,8 +332,7 @@ function localizeCommandOptions(basePath: string, options: CommandOption[]): any
 
     return {
       ...keysToSnakeCase(apiOption),
-      name: finalOptionName,
-      name_localizations: getLocalizations(optionNameKey),
+      name: apiOption.name,
       description: finalOptionDescription,
       description_localizations: getLocalizations(optionDescriptionKey),
       options: localizedSubOptions,
@@ -370,20 +365,19 @@ export async function registerApplicationCommands(
     };
 
     if (command.type === ApplicationCommandType.ChatInput) {
-      const nameKey = `commands.${command.name}.name` as I18nKey;
       const descriptionKey = `commands.${command.name}.description` as I18nKey;
-      const translatedName = t("en-US", nameKey);
-      const finalName = translatedName === nameKey ? command.name : translatedName;
       const translatedDescription = t("en-US", descriptionKey);
       const finalDescription =
         translatedDescription === descriptionKey ? command.description : translatedDescription;
+
       const localizedOptions = command.options
         ? localizeCommandOptions(`commands.${command.name}`, command.options)
         : undefined;
+
       apiData = {
         ...baseData,
-        name: finalName,
-        name_localizations: getLocalizations(nameKey),
+        name: command.name,
+        name_localizations: getLocalizations(`commands.${command.name}.name` as I18nKey),
         description: finalDescription,
         description_localizations: getLocalizations(descriptionKey),
         options: localizedOptions,
@@ -394,6 +388,7 @@ export async function registerApplicationCommands(
       const nameKey = `commands.${commandKey}.name` as I18nKey;
       const translatedName = t("en-US", nameKey);
       const finalName = translatedName === nameKey ? command.name : translatedName;
+
       apiData = {
         ...baseData,
         name: finalName,

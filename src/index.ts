@@ -11,9 +11,8 @@ await lunaBootstrap({
   intents: Object.values(Intents).filter((v): v is Intents => typeof v === "number"),
   partials: Object.values(Partials).filter((v): v is Partials => typeof v === "number"),
   /**
-   * To disable the translation system at runtime, pass `false` here.
-   * Note: The `locales/en-US/common.json` file is still required
-   * during development for autocompletion and to allow the project to build successfully.
+   * The i18n (internationalization) system is now a mandatory part of the core.
+   * Its previous optional nature caused inconsistencies in the codebase,
+   * both in command configurations and response messages.
    */
-  useI18n: true,
 });
