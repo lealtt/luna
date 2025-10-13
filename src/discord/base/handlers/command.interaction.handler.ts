@@ -3,15 +3,17 @@ import {
   chatInputApplicationCommandMention,
   Collection,
   inlineCode,
+  InteractionContextType,
   MessageFlags,
   time,
   type AutocompleteInteraction,
+  type CacheType,
   type ChatInputCommandInteraction,
   type InteractionReplyOptions,
   type MessageContextMenuCommandInteraction,
   type UserContextMenuCommandInteraction,
 } from "discord.js";
-import { runMiddlewareChain } from "#discord/modules";
+import { autocompleteRegistry, commandRegistry, runMiddlewareChain } from "#discord/modules";
 import { userLocaleState } from "#states";
 import { logger, t, Timer, type I18nKey } from "#utils";
 
@@ -120,22 +122,47 @@ async function sendErrorReply(
 }
 
 /**
- * Handles autocomplete interactions for chat input commands.
+ * A type alias for a generic autocomplete handler that can work with any CacheType..
+ */
+type AnyAutocompleteHandler = (
+  interaction: AutocompleteInteraction<CacheType>,
+) => Promise<void> | void;
+
+/**
+ * Handles autocomplete interactions by routing them to the correct, option-specific handler
+ * while respecting the command's context for correct typing.
  * @param interaction - The autocomplete interaction.
  */
 export async function handleAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-  const client = interaction.client as ExtendedClient;
-  const command = client.commands.get(interaction.commandName);
+  const command = commandRegistry.get(interaction.commandName);
+  if (!command) return;
 
-  if (!command || command.type !== ApplicationCommandType.ChatInput || !command.autocomplete) {
-    logger.warn(`No valid autocomplete handler for command "${interaction.commandName}"`);
+  const commandHandlers = autocompleteRegistry.get(interaction.commandName);
+  if (!commandHandlers) return;
+
+  const focusedOption = interaction.options.getFocused(true);
+
+  const handler = commandHandlers.get(focusedOption.name) as AnyAutocompleteHandler | undefined;
+
+  if (!handler) {
+    logger.warn(
+      `No autocomplete handler found for option "${focusedOption.name}" in command "${interaction.commandName}"`,
+    );
     return;
   }
 
   try {
-    await command.autocomplete(interaction as AutocompleteInteraction<"cached">);
+    const commandWithContexts = command as { contexts?: readonly InteractionContextType[] };
+    const isGuildOnly =
+      commandWithContexts.contexts?.length === 1 &&
+      commandWithContexts.contexts[0] === InteractionContextType.Guild;
+
+    await handler(isGuildOnly ? (interaction as AutocompleteInteraction<"cached">) : interaction);
   } catch (error) {
-    logger.error(`Autocomplete error for "${interaction.commandName}":`, error);
+    logger.error(
+      `Autocomplete error for "${interaction.commandName}:${focusedOption.name}":`,
+      error,
+    );
   }
 }
 

@@ -1,14 +1,15 @@
 import { createEmbed } from "#discord/builders";
 import { createCommand } from "#discord/modules";
 import { auditUserContext } from "#discord/middlewares";
-import { ApplicationCommandType, MessageFlags } from "discord.js";
+import { ApplicationCommandType, InteractionContextType, MessageFlags } from "discord.js";
 
 createCommand({
   name: "Show Avatar",
   type: ApplicationCommandType.User,
   middlewares: [auditUserContext],
+  contexts: [InteractionContextType.Guild],
   run(interaction) {
-    const targetUser = interaction.targetUser;
+    const { targetUser } = interaction;
 
     const avatarURL = targetUser.displayAvatarURL({ size: 512 });
 

@@ -20,26 +20,28 @@ createCommand({
       type: ApplicationCommandOptionType.String,
       required: true,
       autocomplete: true,
+      async onAutocomplete(interaction) {
+        const { options } = interaction;
+
+        const focusedValue = options.getFocused();
+
+        const choices = Array.from(commandRegistry.values())
+          .filter((cmd) => cmd.type === ApplicationCommandType.ChatInput)
+          .map((cmd) => cmd.name);
+
+        const filteredChoices = choices.filter((choice) =>
+          choice.toLowerCase().startsWith(focusedValue.toLowerCase()),
+        );
+
+        await interaction.respond(
+          filteredChoices.slice(0, 25).map((choice) => ({
+            name: choice,
+            value: choice,
+          })),
+        );
+      },
     },
   ],
-  async autocomplete(interaction) {
-    const focusedValue = interaction.options.getFocused();
-
-    const choices = Array.from(commandRegistry.values())
-      .filter((cmd) => cmd.type === ApplicationCommandType.ChatInput)
-      .map((cmd) => cmd.name);
-
-    const filteredChoices = choices.filter((choice) =>
-      choice.toLowerCase().startsWith(focusedValue.toLowerCase()),
-    );
-
-    await interaction.respond(
-      filteredChoices.slice(0, 25).map((choice) => ({
-        name: choice,
-        value: choice,
-      })),
-    );
-  },
   run(interaction) {
     const { locale, options } = interaction;
     const commandName = options.getString("command", true);
