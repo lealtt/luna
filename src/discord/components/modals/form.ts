@@ -1,5 +1,5 @@
 import { createComponent, ComponentInteractionType } from "#discord/modules";
-import { t } from "#utils";
+import { modalValues, t } from "#utils";
 import { MessageFlags } from "discord.js";
 
 createComponent({
@@ -7,12 +7,14 @@ createComponent({
   type: ComponentInteractionType.Modal,
   cached: "cached",
   async run(interaction) {
-    const { fields, user, locale } = interaction;
+    const { user, locale } = interaction;
 
-    // Extract the values from each component by its customId
-    const experience = fields.getTextInputValue("staff-apply/experience");
-    const motivation = fields.getTextInputValue("staff-apply/motivation");
-    const [availability] = fields.getStringSelectValues("staff-apply/availability");
+    // Extract all values
+    const { experience, motivation, availability } = modalValues(interaction, () => ({
+      experience: { type: "text", customId: "staff-apply/experience" },
+      motivation: { type: "text", customId: "staff-apply/motivation" },
+      availability: { type: "strings", customId: "staff-apply/availability" },
+    }));
 
     console.log(`New Staff Application from ${user.displayName} (${user.id}):`);
     console.log(`- Experience: ${experience}`);

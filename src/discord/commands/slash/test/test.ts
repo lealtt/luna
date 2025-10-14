@@ -96,14 +96,17 @@ createComponent({
   type: ComponentInteractionType.Modal,
   cached: "cached",
   async run(interaction) {
-    const { fields } = interaction;
+    
+    // Extract all values
+    const { strings, users, roles, channels, mentionables } = modalValues(interaction, () => ({
+      strings: { type: "strings", customId: "test/string-select" },
+      users: { type: "users", customId: "test/user-select" },
+      roles: { type: "roles", customId: "test/role-select" },
+      channels: { type: "channels", customId: "test/channel-select" },
+      mentionables: { type: "mentionables", customId: "test/mentionable-select" },
+    }));
 
-    const strings = modalValues(fields, "test/string-select").strings();
-    const users = modalValues(fields, "test/user-select").users();
-    const roles = modalValues(fields, "test/role-select").roles();
-    const channels = modalValues(fields, "test/channel-select").channels();
-    const mentionables = modalValues(fields, "test/mentionable-select").mentionables();
-
+    // Format the values for the reply
     const stringValue = strings.join(", ") || "None";
     const userValue = users.map((u) => u.toString()).join(", ") || "None";
     const roleValue = roles.map((r) => r.toString()).join(", ") || "None";
