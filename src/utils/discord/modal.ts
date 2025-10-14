@@ -9,7 +9,7 @@ import {
 
 // Supported field types and their outputs
 interface FieldOutput {
-  strings: readonly string[]; // Changed to readonly string[] to match getStringSelectValues
+  strings: readonly string[];
   users: User[];
   roles: Role[];
   channels: Channel[];
