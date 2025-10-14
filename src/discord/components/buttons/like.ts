@@ -32,7 +32,6 @@ createComponent({
       });
     }
 
-    // Send an ephemeral confirmation message to the user who clicked.
     await interaction.reply({
       content: t(locale, "like_component.like_success", {
         user: userMention(targetId),

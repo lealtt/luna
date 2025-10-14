@@ -1,9 +1,9 @@
 import { Collection, type Locale } from "discord.js";
-import type { AnyCommand } from "#discord/modules";
+import type { StorableCommand } from "#discord/modules";
 
 declare module "discord.js" {
   export interface Client {
-    commands: Collection<string, AnyCommand>;
+    commands: Collection<string, StorableCommand>;
     cooldowns: Collection<string, Collection<string, number>>;
   }
 

@@ -17,7 +17,7 @@
       "#discord/bootstrap": ["discord/base/bootstrap.ts"],
       "#discord/modules": ["discord/base/modules/index.ts"],
       "#discord/middlewares": ["discord/middlewares/index.ts"],
-      "#discord/handlers": ["discord/base/handlers/index.ts"],
+      "#discord/structures": ["discord/base/structures/index.ts"],
       "#discord/builders": ["discord/base/builders/index.ts"],
       "#database": ["database/index.ts"],
       "#utils": ["utils/index.ts"],

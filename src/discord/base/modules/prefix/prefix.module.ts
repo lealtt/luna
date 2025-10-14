@@ -1,42 +1,14 @@
-import type { Middleware } from "./middleware.module.js";
-import type { Message } from "discord.js";
 import { z } from "zod";
 import { logger } from "#utils";
+import { Registry } from "#discord/structures";
+import {
+  AliasesValidator,
+  GuildIdsValidator,
+  NameValidator,
+  RunFunctionValidator,
+} from "../shared/validators.js";
+import type { FlagsObject, PrefixCommand } from "./prefix.types.js";
 
-//Types and Interfaces
-export type FlagConfig<T extends z.ZodObject<any>> = {
-  [K in keyof T["shape"]]?: {
-    aliases?: string[];
-    separator?: string;
-  };
-};
-
-export interface FlagsObject<T extends z.ZodObject<any>> {
-  schema: T;
-  config?: FlagConfig<T>;
-}
-
-export interface PrefixCommand<T extends z.ZodObject<any> | undefined = undefined> {
-  name: string;
-  aliases?: string[];
-  guilds?: string[];
-  flags?: T extends z.ZodObject<any> ? FlagsObject<T> : undefined;
-  cooldown?: number;
-  middlewares?: Middleware<Message>[];
-  run: (
-    message: Message,
-    args: T extends z.ZodObject<any> ? z.infer<T> : string[],
-  ) => Promise<void> | void;
-}
-
-export const prefixCommandRegistry = new Map<string, PrefixCommand<any>>();
-
-/**
- * Parses command flags from a raw input string.
- * @param input The raw argument string.
- * @param flagsObject The schema and configuration for flags.
- * @returns A record of flag keys and their values.
- */
 export function parseFlags<T extends z.ZodObject<any>>(
   input: string,
   flagsObject?: FlagsObject<T>,
@@ -55,7 +27,6 @@ export function parseFlags<T extends z.ZodObject<any>>(
     }
   }
 
-  // Parse separator-based flags
   if (flagsObject?.config) {
     for (const flagKey in flagsObject.config) {
       const config = flagsObject.config[flagKey];
@@ -81,7 +52,6 @@ export function parseFlags<T extends z.ZodObject<any>>(
     }
   }
 
-  // Parse space-prefixed flags
   const args = remainingInput.trim().match(/(?:[^\s"]+|"[^"]*")+/g) || [];
   const spacePrefixedFlags = ["--", "-", "/"];
   for (let i = 0; i < args.length; i++) {
@@ -104,7 +74,6 @@ export function parseFlags<T extends z.ZodObject<any>>(
     }
   }
 
-  // Fallback for single-argument commands without flag syntax
   if (Object.keys(flags).length === 0 && flagsObject?.schema) {
     const schemaKeys = Object.keys(flagsObject.schema.shape);
 
@@ -124,7 +93,6 @@ export function parseFlags<T extends z.ZodObject<any>>(
     }
   }
 
-  // Validate flags with schema
   if (flagsObject?.schema) {
     const result = flagsObject.schema.safeParse(flags);
     if (!result.success) throw result.error;
@@ -134,43 +102,57 @@ export function parseFlags<T extends z.ZodObject<any>>(
   return flags;
 }
 
-/**
- * Creates and registers a prefix-based command with runtime validation.
- * @param command The command configuration.
- */
+class PrefixCommandRegistry extends Registry<PrefixCommand<any>> {
+  private static instance: PrefixCommandRegistry;
+  protected readonly registryName = "PrefixCommand";
+
+  protected constructor() {
+    super();
+  }
+
+  public static getInstance(): PrefixCommandRegistry {
+    if (!PrefixCommandRegistry.instance) {
+      PrefixCommandRegistry.instance = new PrefixCommandRegistry();
+    }
+    return PrefixCommandRegistry.instance;
+  }
+
+  public register(item: PrefixCommand<any>): void {
+    super.register(item);
+    if (item.aliases) {
+      for (const alias of item.aliases) {
+        if (this.store.has(alias)) {
+          logger.warn(
+            `Alias "${alias}" for command "${item.name}" is already registered and will be ignored.`,
+          );
+          continue;
+        }
+        this.store.set(alias, item);
+      }
+    }
+  }
+
+  protected validate(item: PrefixCommand<any>): void {
+    const nameValidator = new NameValidator<typeof item>();
+    const runFunctionValidator = new RunFunctionValidator<typeof item>();
+    const aliasesValidator = new AliasesValidator<typeof item>();
+    const guildIdsValidator = new GuildIdsValidator<typeof item>();
+
+    nameValidator
+      .setNext(runFunctionValidator)
+      .setNext(aliasesValidator)
+      .setNext(guildIdsValidator);
+
+    nameValidator.validate(item);
+
+    super.validate(item);
+  }
+}
+
+export const prefixCommandRegistry = PrefixCommandRegistry.getInstance();
+
 export function createPrefixCommand<T extends z.ZodObject<any> | undefined>(
   command: PrefixCommand<T>,
 ): void {
-  if (!command.name) {
-    throw new Error("Command name cannot be empty.");
-  }
-  if (command.aliases?.some((alias) => !alias || alias === command.name)) {
-    throw new Error(
-      `Invalid aliases for command "${command.name}". Aliases must be non-empty and distinct from the command name.`,
-    );
-  }
-  if (command.guilds?.some((id) => !/^\d+$/.test(id))) {
-    throw new Error(`Invalid guild ID in command "${command.name}". Guild IDs must be numeric.`);
-  }
-  if (typeof command.run !== "function") {
-    throw new Error(`Command "${command.name}" must have a valid run function.`);
-  }
-
-  try {
-    prefixCommandRegistry.set(command.name, command);
-    if (command.aliases) {
-      for (const alias of command.aliases) {
-        if (prefixCommandRegistry.has(alias)) {
-          throw new Error(`Alias "${alias}" for command "${command.name}" is already registered.`);
-        }
-        prefixCommandRegistry.set(alias, command);
-      }
-    }
-    logger.module(
-      `Registered prefix command: ?${command.name} (aliases: ${command.aliases?.join(", ") ?? "none"})`,
-    );
-  } catch (error) {
-    logger.error(`Failed to register prefix command "${command.name}":`, error);
-    throw error;
-  }
+  prefixCommandRegistry.register(command);
 }

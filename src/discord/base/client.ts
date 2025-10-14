@@ -1,11 +1,11 @@
 import { Events, InteractionType, Locale, Message } from "discord.js";
-import { createEvent } from "#discord/modules";
+import { createEvent } from "./modules/events/events.module.js";
 import {
   handleApplicationCommand,
   handleAutocomplete,
-  handleComponentInteraction,
-  handlePrefixCommand,
-} from "#discord/handlers";
+} from "./modules/commands/command.handler.js";
+import { handleComponentInteraction } from "./modules/components/component.handler.js";
+import { handlePrefixCommand } from "./modules/prefix/prefix.handler.js";
 import { userLocaleState } from "#states";
 
 /**
@@ -26,9 +26,6 @@ Object.defineProperty(Message.prototype, "locale", {
   },
 });
 
-/**
- * Handles the InteractionCreate event to route interactions to the correct handlers.
- */
 createEvent({
   name: Events.InteractionCreate,
   silent: true,
@@ -58,9 +55,6 @@ createEvent({
   },
 });
 
-/**
- * Handles the MessageCreate event to process prefix commands.
- */
 createEvent({
   name: Events.MessageCreate,
   silent: true,

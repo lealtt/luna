@@ -16,7 +16,8 @@
     "structures": "Custom",
     "system": "Interface",
     "builders": "Webpack",
-    "loaders": "Config"
+    "loaders": "Config",
+    "paginator": "Less"
   },
   "material-icon-theme.files.associations": {
     "settings.json": "Raml",

@@ -8,45 +8,15 @@ import {
   time,
   type AutocompleteInteraction,
   type CacheType,
-  type ChatInputCommandInteraction,
   type InteractionReplyOptions,
-  type MessageContextMenuCommandInteraction,
-  type UserContextMenuCommandInteraction,
 } from "discord.js";
-import { autocompleteRegistry, commandRegistry, runMiddlewareChain } from "#discord/modules";
+import { autocompleteRegistry, commandRegistry } from "./command.module.js";
+import { runMiddlewareChain } from "../shared/middleware.module.js";
 import { userLocaleState } from "#states";
 import { logger, t, Timer, type I18nKey } from "#utils";
+import type { AnyApplicationCommandInteraction, StorableCommand } from "./command.types.js";
 
-// Type alias for any application command interaction
-type AnyApplicationCommandInteraction =
-  | ChatInputCommandInteraction
-  | UserContextMenuCommandInteraction
-  | MessageContextMenuCommandInteraction;
-
-// Interface for commands
-interface Command {
-  name: string;
-  type: ApplicationCommandType;
-  cooldown?: number;
-  middlewares?: Array<
-    (interaction: AnyApplicationCommandInteraction, next: () => Promise<void>) => Promise<void>
-  >;
-  run: (interaction: AnyApplicationCommandInteraction) => Promise<void>;
-  autocomplete?: (interaction: AutocompleteInteraction<"cached">) => Promise<void>;
-}
-
-interface ExtendedClient {
-  commands: Collection<string, Command>;
-  cooldowns: Collection<string, Collection<string, number>>;
-}
-
-/**
- * Formats a command mention based on its type.
- * @param command - The command to format.
- * @param commandId - The command ID for chat input commands.
- * @returns Formatted command mention string.
- */
-function formatCommandMention(command: Command, commandId: string): string {
+function formatCommandMention(command: StorableCommand, commandId: string): string {
   const formatters: Partial<Record<ApplicationCommandType, () => string>> = {
     [ApplicationCommandType.ChatInput]: () =>
       chatInputApplicationCommandMention(command.name, commandId),
@@ -56,27 +26,20 @@ function formatCommandMention(command: Command, commandId: string): string {
   return formatters[command.type]?.() ?? inlineCode(command.name);
 }
 
-/**
- * Checks if a user is on cooldown for a command and replies if they are.
- * @param interaction - The command interaction.
- * @param command - The command to check.
- * @returns True if the user is on cooldown, false otherwise.
- */
 async function checkCooldown(
   interaction: AnyApplicationCommandInteraction,
-  command: Command,
+  command: StorableCommand,
 ): Promise<boolean> {
-  const client = interaction.client as ExtendedClient;
+  const client = interaction.client;
   const cooldowns = client.cooldowns;
 
-  // Initialize cooldown collection for the command if it doesn't exist
   if (!cooldowns.has(command.name)) {
     cooldowns.set(command.name, new Collection());
   }
 
   const timestamps = cooldowns.get(command.name)!;
   const now = Date.now();
-  const cooldownAmount = (command.cooldown ?? 3) * 1000; // Default to 3 seconds
+  const cooldownAmount = (command.cooldown ?? 3) * 1000;
   const userTimestamp = timestamps.get(interaction.user.id);
 
   if (userTimestamp && now < userTimestamp + cooldownAmount) {
@@ -92,18 +55,11 @@ async function checkCooldown(
     return true;
   }
 
-  // Set new timestamp and schedule cleanup
   timestamps.set(interaction.user.id, now);
   setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
   return false;
 }
 
-/**
- * Sends an error reply to the user, handling both replied and unreplied states.
- * @param interaction - The command interaction.
- * @param messageKey - The i18n key for the error message.
- * @param variables - Optional variables for the error message.
- */
 async function sendErrorReply(
   interaction: AnyApplicationCommandInteraction,
   messageKey: I18nKey = "common_errors.generic",
@@ -121,18 +77,10 @@ async function sendErrorReply(
   }
 }
 
-/**
- * A type alias for a generic autocomplete handler that can work with any CacheType..
- */
 type AnyAutocompleteHandler = (
   interaction: AutocompleteInteraction<CacheType>,
 ) => Promise<void> | void;
 
-/**
- * Handles autocomplete interactions by routing them to the correct, option-specific handler
- * while respecting the command's context for correct typing.
- * @param interaction - The autocomplete interaction.
- */
 export async function handleAutocomplete(interaction: AutocompleteInteraction): Promise<void> {
   const command = commandRegistry.get(interaction.commandName);
   if (!command) return;
@@ -166,17 +114,12 @@ export async function handleAutocomplete(interaction: AutocompleteInteraction): 
   }
 }
 
-/**
- * Handles execution of any application command, including middleware and cooldowns.
- * @param interaction - The incoming command interaction.
- */
 export async function handleApplicationCommand(
   interaction: AnyApplicationCommandInteraction,
 ): Promise<void> {
-  // Cache user's locale for use elsewhere
   userLocaleState.set({ locale: interaction.locale }, Timer(1).hour());
 
-  const client = interaction.client as ExtendedClient;
+  const client = interaction.client;
   const command = client.commands.get(interaction.commandName);
 
   if (!command) {
@@ -186,12 +129,10 @@ export async function handleApplicationCommand(
   }
 
   try {
-    // Check cooldown
     if (await checkCooldown(interaction, command)) {
       return;
     }
 
-    // Run middleware chain and execute command
     const executeCommand = () => command.run(interaction);
     await runMiddlewareChain(interaction, command.middlewares ?? [], executeCommand);
   } catch (error) {

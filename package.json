@@ -43,7 +43,7 @@
     "#discord/bootstrap": "./dist/discord/base/bootstrap.js",
     "#discord/modules": "./dist/discord/base/modules/index.js",
     "#discord/middlewares": "./dist/discord/middlewares/index.js",
-    "#discord/handlers": "./dist/discord/base/handlers/index.js",
+    "#discord/structures": "./dist/discord/base/structures/index.js",
     "#discord/builders": "./dist/discord/base/builders/index.js",
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js",

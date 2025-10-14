@@ -1,14 +1,13 @@
 import { MessageComponentInteraction, ModalSubmitInteraction, MessageFlags } from "discord.js";
-import { ComponentInteractionType, componentRegistry, type AnyComponent } from "#discord/modules";
 import { logger, t, type I18nKey } from "#utils";
 import { z, ZodError } from "zod";
+import { componentRegistry } from "./component.module.js";
+import {
+  ComponentInteractionType,
+  type AnyComponent,
+  type AnyInteraction,
+} from "./component.types.js";
 
-/**
- * Matches a dynamic custom ID pattern against an interaction's custom ID.
- * @param pattern The component's custom ID pattern (e.g., "user/{action}/{id}").
- * @param customId The interaction's custom ID.
- * @returns An object of extracted parameters, or null if it doesn't match.
- */
 function matchCustomIdPattern(pattern: string, customId: string): Record<string, string> | null {
   const patternParts = pattern.split("/");
   const idParts = customId.split("/");
@@ -33,11 +32,6 @@ function matchCustomIdPattern(pattern: string, customId: string): Record<string,
   return params;
 }
 
-/**
- * Maps a discord.js interaction to our custom ComponentInteractionType enum.
- * @param interaction The incoming interaction object.
- * @returns The corresponding enum type, or null if unknown.
- */
 function getComponentType(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
 ): ComponentInteractionType | null {
@@ -53,13 +47,6 @@ function getComponentType(
   return null;
 }
 
-/**
- * Validates parameters against a Zod schema.
- * @param params Raw parameters extracted from the custom ID.
- * @param schema The Zod schema to validate against.
- * @returns The validated parameters.
- * @throws ZodError if validation fails.
- */
 function validateParams(
   params: Record<string, string>,
   schema?: z.ZodObject<any>,
@@ -68,12 +55,6 @@ function validateParams(
   return schema.parse(params);
 }
 
-/**
- * Sends a standardized ephemeral error reply to an interaction.
- * @param interaction The component or modal interaction.
- * @param messageKey The i18n key for the error message.
- * @param variables Optional variables for the message.
- */
 async function sendErrorReply(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
   messageKey: I18nKey = "common_errors.generic",
@@ -85,10 +66,6 @@ async function sendErrorReply(
   });
 }
 
-/**
- * Handles all incoming component and modal interactions.
- * @param interaction The incoming Discord.js interaction.
- */
 export async function handleComponentInteraction(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
 ): Promise<void> {
@@ -103,7 +80,7 @@ export async function handleComponentInteraction(
   const staticKey = interaction.customId.split("/")[0];
   if (!staticKey) return;
 
-  const handlersForStaticKey = componentRegistry.get(staticKey);
+  const handlersForStaticKey = componentRegistry.getHandlerMap(staticKey);
 
   if (!handlersForStaticKey) {
     if (!interaction.replied && !interaction.deferred) {
@@ -132,11 +109,7 @@ export async function handleComponentInteraction(
     return;
   }
 
-  const typeMatch = Array.isArray(handler.type)
-    ? handler.type.includes(interactionType)
-    : handler.type === interactionType;
-
-  if (!typeMatch || !rawParams) {
+  if (handler.type !== interactionType || !rawParams) {
     if (!interaction.replied && !interaction.deferred) {
       logger.error(
         `Handler found for "${staticKey}" but it did not match the full custom ID or interaction type.`,
@@ -148,7 +121,7 @@ export async function handleComponentInteraction(
 
   try {
     const validatedParams = validateParams(rawParams, handler.paramsSchema);
-    await (handler as AnyComponent).run(interaction as any, validatedParams);
+    await handler.run(interaction as AnyInteraction, validatedParams);
   } catch (error) {
     if (!interaction.replied && !interaction.deferred) {
       if (error instanceof ZodError) {
