@@ -39,5 +39,7 @@ createComponent({
       }),
       flags: MessageFlags.Ephemeral,
     });
+
+    likeState.delete(stateId);
   },
 });
