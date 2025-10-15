@@ -3,63 +3,13 @@
     "ping": {
       "description": "Verifica a latência do bot."
     },
-    "help": {
-      "description": "Obtém informações sobre um comando específico.",
-      "options": {
-        "command": {
-          "description": "O comando sobre o qual você deseja saber mais."
-        }
-      }
+    "language": {
+      "name": "idioma",
+      "description": "Define o seu idioma de preferência para o bot."
     },
-    "mod": {
-      "description": "Modere qualquer membro.",
-      "options": {
-        "user": {
-          "description": "Selecione qualquer usuário."
-        }
-      }
-    },
-    "list": {
-      "description": "Exibe uma lista paginada de itens."
-    },
-    "like": {
-      "description": "Demonstre seu apreço por alguém.",
-      "options": {
-        "user": {
-          "description": "O usuário que você deseja curtir."
-        }
-      }
-    },
-    "ban": {
-      "description": "Bane um membro do servidor."
-    },
-    "bookmark-message": {
-      "name": "Marcar Mensagem"
-    },
-    "show-avatar": {
-      "name": "Mostrar Avatar"
-    },
-    "report": {
-      "description": "Reportar um usuário ou um bug."
-    },
-    "profile": {
-      "description": "Veja ou defina o perfil de um usuário.",
-      "options": {
-        "view": {
-          "description": "Veja o cartão de perfil de um usuário.",
-          "options": {
-            "user": {
-              "description": "O usuário cujo perfil você deseja ver."
-            }
-          }
-        },
-        "set": {
-          "description": "Defina sua descrição 'Sobre Mim' personalizada."
-        }
-      }
-    },
-    "form": {
-      "description": "Candidate-se para se tornar um membro da equipe."
+    "calculator": {
+      "name": "calculadora",
+      "description": "Abre uma calculadora interativa."
     }
   }
 }

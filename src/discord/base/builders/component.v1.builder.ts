@@ -253,23 +253,35 @@ export function createStringSelectMenu(
   return builder;
 }
 
+type GenericSelectMenuBuilder =
+  | UserSelectMenuBuilder
+  | RoleSelectMenuBuilder
+  | ChannelSelectMenuBuilder
+  | MentionableSelectMenuBuilder;
+
 /**
- * A factory function for creating a UserSelectMenuBuilder.
- * @param options The options for the user select menu.
- * @returns A UserSelectMenuBuilder instance.
+ * Generic factory function to create and configure specific select menu builders.
+ * @param Builder The constructor of the builder to use (e.g., UserSelectMenuBuilder).
+ * @param options The configuration options for the menu.
+ * @returns A configured instance of the builder.
  */
-export function createUserSelectMenu(options: CreateSelectMenuOptions): UserSelectMenuBuilder {
+function createGenericSelectMenu<T extends GenericSelectMenuBuilder>(
+  Builder: new () => T,
+  options: CreateSelectMenuOptions,
+): T {
   const { locale = "en-US" } = options;
   if (!options.customId) {
-    logger.error("createUserSelectMenu: Custom ID is required.");
-    throw new Error("UserSelectMenu requires a custom ID.");
+    logger.error("createGenericSelectMenu: Custom ID is required.");
+    throw new Error("SelectMenu requires a custom ID.");
   }
-  const builder = new UserSelectMenuBuilder()
+
+  const builder = new Builder()
     .setCustomId(options.customId)
     .setMinValues(options.minValues ?? 1)
     .setMaxValues(options.maxValues ?? 1)
     .setDisabled(options.disabled ?? false)
     .setRequired(options.required ?? false);
+
   const translatedPlaceholder = options.placeholderI18nKey
     ? t(locale, options.placeholderI18nKey)
     : undefined;
@@ -277,8 +289,21 @@ export function createUserSelectMenu(options: CreateSelectMenuOptions): UserSele
     translatedPlaceholder && translatedPlaceholder !== options.placeholderI18nKey
       ? translatedPlaceholder
       : options.placeholder;
-  if (placeholder) builder.setPlaceholder(placeholder);
-  return builder;
+
+  if (placeholder) {
+    builder.setPlaceholder(placeholder);
+  }
+
+  return builder as T;
+}
+
+/**
+ * A factory function for creating a UserSelectMenuBuilder.
+ * @param options The options for the user select menu.
+ * @returns A UserSelectMenuBuilder instance.
+ */
+export function createUserSelectMenu(options: CreateSelectMenuOptions): UserSelectMenuBuilder {
+  return createGenericSelectMenu(UserSelectMenuBuilder, options);
 }
 
 /**
@@ -287,26 +312,7 @@ export function createUserSelectMenu(options: CreateSelectMenuOptions): UserSele
  * @returns A RoleSelectMenuBuilder instance.
  */
 export function createRoleSelectMenu(options: CreateSelectMenuOptions): RoleSelectMenuBuilder {
-  const { locale = "en-US" } = options;
-  if (!options.customId) {
-    logger.error("createRoleSelectMenu: Custom ID is required.");
-    throw new Error("RoleSelectMenu requires a custom ID.");
-  }
-  const builder = new RoleSelectMenuBuilder()
-    .setCustomId(options.customId)
-    .setMinValues(options.minValues ?? 1)
-    .setMaxValues(options.maxValues ?? 1)
-    .setDisabled(options.disabled ?? false)
-    .setRequired(options.required ?? false);
-  const translatedPlaceholder = options.placeholderI18nKey
-    ? t(locale, options.placeholderI18nKey)
-    : undefined;
-  const placeholder =
-    translatedPlaceholder && translatedPlaceholder !== options.placeholderI18nKey
-      ? translatedPlaceholder
-      : options.placeholder;
-  if (placeholder) builder.setPlaceholder(placeholder);
-  return builder;
+  return createGenericSelectMenu(RoleSelectMenuBuilder, options);
 }
 
 /**
@@ -317,26 +323,7 @@ export function createRoleSelectMenu(options: CreateSelectMenuOptions): RoleSele
 export function createChannelSelectMenu(
   options: CreateSelectMenuOptions,
 ): ChannelSelectMenuBuilder {
-  const { locale = "en-US" } = options;
-  if (!options.customId) {
-    logger.error("createChannelSelectMenu: Custom ID is required.");
-    throw new Error("ChannelSelectMenu requires a custom ID.");
-  }
-  const builder = new ChannelSelectMenuBuilder()
-    .setCustomId(options.customId)
-    .setMinValues(options.minValues ?? 1)
-    .setMaxValues(options.maxValues ?? 1)
-    .setDisabled(options.disabled ?? false)
-    .setRequired(options.required ?? false);
-  const translatedPlaceholder = options.placeholderI18nKey
-    ? t(locale, options.placeholderI18nKey)
-    : undefined;
-  const placeholder =
-    translatedPlaceholder && translatedPlaceholder !== options.placeholderI18nKey
-      ? translatedPlaceholder
-      : options.placeholder;
-  if (placeholder) builder.setPlaceholder(placeholder);
-  return builder;
+  return createGenericSelectMenu(ChannelSelectMenuBuilder, options);
 }
 
 /**
@@ -347,26 +334,7 @@ export function createChannelSelectMenu(
 export function createMentionableSelectMenu(
   options: CreateSelectMenuOptions,
 ): MentionableSelectMenuBuilder {
-  const { locale = "en-US" } = options;
-  if (!options.customId) {
-    logger.error("createMentionableSelectMenu: Custom ID is required.");
-    throw new Error("MentionableSelectMenu requires a custom ID.");
-  }
-  const builder = new MentionableSelectMenuBuilder()
-    .setCustomId(options.customId)
-    .setMinValues(options.minValues ?? 1)
-    .setMaxValues(options.maxValues ?? 1)
-    .setDisabled(options.disabled ?? false)
-    .setRequired(options.required ?? false);
-  const translatedPlaceholder = options.placeholderI18nKey
-    ? t(locale, options.placeholderI18nKey)
-    : undefined;
-  const placeholder =
-    translatedPlaceholder && translatedPlaceholder !== options.placeholderI18nKey
-      ? translatedPlaceholder
-      : options.placeholder;
-  if (placeholder) builder.setPlaceholder(placeholder);
-  return builder;
+  return createGenericSelectMenu(MentionableSelectMenuBuilder, options);
 }
 
 /**

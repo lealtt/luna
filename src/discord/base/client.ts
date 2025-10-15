@@ -1,4 +1,4 @@
-import { Events, InteractionType, Locale, Message } from "discord.js";
+import { Events, InteractionType, Locale, Collection } from "discord.js";
 import { createEvent } from "./modules/events/events.module.js";
 import {
   handleApplicationCommand,
@@ -6,31 +6,36 @@ import {
 } from "./modules/commands/command.handler.js";
 import { handleComponentInteraction } from "./modules/components/component.handler.js";
 import { handlePrefixCommand } from "./modules/prefix/prefix.handler.js";
-import { userLocaleState } from "#states";
+import { models } from "#database";
+import type { StorableCommand } from "./modules/commands/command.types.js";
 
-/**
- * Augments the discord.js Message class with a custom getter for 'locale'.
- * This centralizes the logic for getting the locale for prefix commands.
- * Priority: Guild > User Cache > Fallback.
- */
-Object.defineProperty(Message.prototype, "locale", {
-  get: function (): Locale {
-    if (this.guild) return this.guild.preferredLocale;
+declare module "discord.js" {
+  export interface Client {
+    commands: Collection<string, StorableCommand>;
+  }
 
-    const cachedState = userLocaleState.get(this.author.id);
-    if (cachedState) {
-      return cachedState.locale;
-    }
+  export interface Message {
+    locale: Locale;
+  }
 
-    return Locale.EnglishUS;
-  },
-});
+  export interface BaseInteraction {
+    locale: Locale;
+  }
+}
 
 createEvent({
   name: Events.InteractionCreate,
   silent: true,
   async run(interaction) {
-    interaction.locale = interaction.guild?.preferredLocale ?? interaction.locale;
+    const userDoc = await models.users.findOne({ userId: interaction.user.id });
+
+    if (userDoc?.locale) {
+      interaction.locale = userDoc.locale;
+    } else {
+      interaction.locale = interaction.guild?.preferredLocale ?? interaction.locale;
+    }
+
+    // console.log(interaction.locale);
 
     switch (interaction.type) {
       case InteractionType.ApplicationCommand:
@@ -59,6 +64,17 @@ createEvent({
   name: Events.MessageCreate,
   silent: true,
   async run(message) {
+    if (!message.author || message.author.bot) return;
+    const userDoc = await models.users.findOne({ userId: message.author.id });
+
+    if (userDoc?.locale) {
+      message.locale = userDoc.locale;
+    } else {
+      message.locale = message.guild?.preferredLocale ?? Locale.EnglishUS;
+    }
+
+    // console.log(message.locale);
+
     await handlePrefixCommand(message);
   },
 });

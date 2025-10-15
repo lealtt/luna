@@ -4,7 +4,6 @@ export * from "./structures/Timer.js";
 export * from "./structures/Queue.js";
 export * from "./structures/Cron.js";
 export * from "./system/i18n.js";
-export * from "./system/states.js";
 export * from "./discord/finder.js";
 export * from "./discord/emojis.js";
 export * from "./discord/colors.js";

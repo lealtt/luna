@@ -20,7 +20,34 @@ import { z } from "zod";
 import { env } from "#utils";
 import { Registry } from "#discord/structures";
 
-const AnyCommandSchema = z.any();
+const BaseCommandSchema = z.object({
+  name: z.string().min(1, { message: "Command name cannot be empty." }),
+  type: z.enum(ApplicationCommandType),
+  guilds: z.array(z.string()).optional(),
+  cooldown: z.number().positive().optional(),
+  middlewares: z.array(z.function()).optional(),
+  run: z.function(),
+});
+
+const ChatInputCommandSchema = BaseCommandSchema.extend({
+  type: z.literal(ApplicationCommandType.ChatInput),
+  description: z.string().min(1, { message: "ChatInput command must have a description." }),
+  options: z.array(z.any()).optional(),
+});
+
+const UserContextMenuCommandSchema = BaseCommandSchema.extend({
+  type: z.literal(ApplicationCommandType.User),
+});
+
+const MessageContextMenuCommandSchema = BaseCommandSchema.extend({
+  type: z.literal(ApplicationCommandType.Message),
+});
+
+const AnyCommandSchema = z.discriminatedUnion("type", [
+  ChatInputCommandSchema,
+  UserContextMenuCommandSchema,
+  MessageContextMenuCommandSchema,
+]);
 
 export const autocompleteRegistry = new Map<string, Map<string, AutocompleteHandler<any>>>();
 

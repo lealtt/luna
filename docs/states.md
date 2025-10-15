@@ -1,169 +1,149 @@
 # 📍 State System (Temporary Interaction Storage)
 
-The **state system** provides a way to store **temporary, type-safe data** between Discord interactions, for example, between a `/command` and a button click.
+Luna's **state system**, now powered by the `StateManager` class, provides a robust and efficient way to store **temporary, type-safe data** between Discord interactions (for example, between a `/command` execution and a button click).
 
-It’s useful when you need to **keep context** without using a database, while ensuring data is **validated** using [`Zod`](https://zod.dev).
+It's the ideal solution when you need to **maintain context** for an interaction without using a database, with the advantage of being an in-memory cache with automatic resource management.
 
 ---
 
 ## ⚙️ How It Works
 
-The main function is:
+The system is built on the `StateManager` class, which provides an in-memory cache with a time-to-live (TTL), size limit, and automatic cleanup.
 
 ```ts
-import { defineState } from "#utils";
+import { StateManager } from "#discord/structures";
 ```
 
-### `defineState(name, schema)`
+### `new StateManager<T>(options)`
 
-Creates a new state with:
+To create a new state manager, you instantiate the `StateManager` class, specifying the type `T` of the data to be stored and passing an options object.
 
-- A **unique name** (used as a prefix for the state ID)
-- A **Zod schema** that validates the stored data
+**Constructor Options:**
 
-It returns an object with three helper methods:
+| Option            | Description                                                                       | Default         |
+| ----------------- | --------------------------------------------------------------------------------- | --------------- |
+| `name`            | A unique name for the manager, used in logs.                                      | **Required**    |
+| `maxSize`         | The maximum number of entries the cache can hold before evicting the oldest ones. | `10000`         |
+| `defaultTTL`      | The default time-to-live for each entry, in milliseconds.                         | `3600000` (1h)  |
+| `cleanupInterval` | How often the automatic cleanup of expired entries is performed.                  | `300000` (5min) |
 
-| Method                  | Description                                                                                                         |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `set(data, ttl?)`       | Stores data temporarily and returns a unique `stateId`. The optional TTL (time-to-live) defaults to **15 minutes**. |
-| `get(stateId)`          | Retrieves and validates the data. Returns `null` if it’s expired, invalid, or not part of this state type.          |
-| `update(stateId, data)` | Updates stored data without resetting its TTL. Returns `true` if successful.                                        |
+**Main Methods:**
+
+| Method             | Description                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `set(data, ttl?)`  | Stores `data` and returns a unique `stateId`. The optional `ttl` overrides the default. |
+| `get(stateId)`     | Retrieves the data. Returns `undefined` if the entry does not exist or has expired.     |
+| `update(id, data)` | Partially updates the data of an existing entry without resetting its TTL.              |
+| `delete(stateId)`  | Removes an entry from the cache.                                                        |
+| `has(stateId)`     | Checks if an entry exists and is not expired.                                           |
+| `getStats()`       | Returns detailed statistics about the cache usage (size, hit rate, evictions, etc.).    |
 
 ---
 
 ## 🧩 Internal Mechanics
 
-Under the hood:
+- States are stored in an in-memory `Map`.
+- A `setInterval` periodically performs cleanup of expired entries, which is more efficient than a `setTimeout` per entry.
+- When `maxSize` is reached, the least recently used entries (LRU policy) are removed to make room for new ones, preventing excessive memory consumption.
+- The generated IDs are unique and are no longer tied to the manager's name.
 
-- States are stored in an in-memory `Map` (`stateCache`) with `{ stateId → data }` pairs.
-- Each `stateId` follows the format:
-
-  ```
-  {name}:{UUID}
-  ```
-
-  Example:
-
-  ```
-  like:3c5e7e6a-0d77-4e2a-9a5a-5c123b05f1c3
-  ```
-
-- After the TTL expires, the data is automatically removed from memory.
-
-> ⚠️ Since this system uses in-memory storage, **states are lost when the bot restarts**.
+> ⚠️ Since this system uses in-memory storage, **all states are lost when the bot restarts**.
 
 ---
 
-## ✅ Example: Like Command State
+## ✅ Example: The New `/like` Command
 
-Here’s a complete example using a `/like` command that lets users “like” another member.
+Here’s the complete and updated example for the `/like` command.
 
-### 1. Defining the State
+### 1\. Defining the State
+
+Instead of `defineState`, we now create an instance of `StateManager`.
+
+**File:** `src/discord/states/like.state.ts`
 
 ```ts
-import { defineState } from "#utils";
-import { z } from "zod";
+import { StateManager } from "#discord/structures";
+import { Timer } from "#utils";
 
-/**
- * State for the /like command.
- */
-export const likeState = defineState(
-  "like",
-  z.object({
-    authorId: z.string(),
-    targetId: z.string(),
-  }),
-);
+// Define the data type that this manager will store
+type LikeStateData = {
+  authorId: string;
+  targetId: string;
+};
+
+// Create and export the state manager instance
+export const likeState = new StateManager<LikeStateData>({
+  name: "LikeState",
+  maxSize: 1000,
+  defaultTTL: Timer(10).min(), // 10 minute TTL
+});
 ```
 
-This defines a state named `like` with two required string fields: `authorId` and `targetId`.
+### 2\. Creating the `/like` Command
 
----
+The command's code remains almost the same, as the `.set()` method is still used in the same way.
 
-### 2. Creating the `/like` Command
+**File:** `src/discord/commands/slash/utility/like.ts`
 
 ```ts
 import { createButton, createRow } from "#discord/builders";
 import { createCommand } from "#discord/modules";
 import { likeState } from "#states";
-import {
-  ApplicationCommandOptionType,
-  ApplicationCommandType,
-  InteractionContextType,
-  ButtonStyle,
-} from "discord.js";
+// ... other imports
 
 createCommand({
   name: "like",
-  description: "Show your appreciation for someone.",
-  type: ApplicationCommandType.ChatInput,
-  contexts: [InteractionContextType.Guild],
-  options: [
-    {
-      name: "user",
-      description: "The user you want to like.",
-      type: ApplicationCommandOptionType.User,
-      required: true,
-    },
-  ],
+  // ...
   run(interaction) {
     const { user: author, options } = interaction;
     const targetUser = options.getUser("user", true);
 
-    // Store author and target IDs in a temporary state
+    // Store the data and get a unique ID
     const stateId = likeState.set({
       authorId: author.id,
       targetId: targetUser.id,
     });
 
-    // Create a button with the stateId embedded
     const row = createRow(
       createButton({
-        customId: `like/${stateId}`,
-        label: "Like",
+        customId: `like/${stateId}`, // The ID is used in the button
+        labelI18nKey: "like.button_label",
         emoji: "❤️",
         style: ButtonStyle.Success,
       }),
     );
 
-    // Send the message with the button
     interaction.reply({
-      content: `${author.username} wants to show appreciation for ${targetUser.username}!`,
+      content: t(interaction.locale, "like.reply_content", { author, target: targetUser }),
       components: [row],
     });
   },
 });
 ```
 
-🧠 Here:
+### 3\. Handling the Button Interaction
 
-- `likeState.set(...)` saves `{ authorId, targetId }` temporarily.
-- The button’s `customId` includes the unique `stateId`:
+The component that handles the button click also remains almost unchanged.
 
-  ```
-  like/like:3c5e7e6a-0d77-4e2a-9a5a-5c123b05f1c3
-  ```
-
----
-
-### 3. Handling the Button Interaction
+**File:** `src/discord/components/buttons/like.ts`
 
 ```ts
 import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { likeState } from "#states";
-import { MessageFlags, userMention } from "discord.js";
+// ... other imports
 
 createComponent({
   customId: "like/{stateId}",
   type: ComponentInteractionType.Button,
   cached: "cached",
   async run(interaction, { stateId }) {
+    // Retrieve the data using the ID
     const state = likeState.get(stateId);
 
-    // If the state expired or doesn’t exist
+    // If the state has expired or doesn't exist, `get` returns `undefined`
     if (!state) {
       return interaction.reply({
-        content: "This like button has expired. Please use the command again.",
+        content: t(interaction.locale, "like_component.like_expired"),
         flags: MessageFlags.Ephemeral,
       });
     }
@@ -171,55 +151,41 @@ createComponent({
     const { targetId } = state;
     const clicker = interaction.user;
 
-    // Prevent liking yourself
     if (clicker.id === targetId) {
-      return interaction.reply({
-        content: "You can’t like yourself!",
-        flags: MessageFlags.Ephemeral,
-      });
+      // ...
     }
 
-    // Send an ephemeral confirmation
     await interaction.reply({
-      content: `You liked ${userMention(targetId)}! ❤️`,
+      content: t(interaction.locale, "like_component.like_success", {
+        user: userMention(targetId),
+      }),
       flags: MessageFlags.Ephemeral,
     });
+
+    // Delete the state from memory after use
+    likeState.delete(stateId);
   },
 });
 ```
-
-💡 If the user clicks the button **after the state expires**,
-`likeState.get(stateId)` returns `null`, and you can handle it gracefully.
 
 ---
 
 ## 🧹 State Lifecycle Summary
 
-1. **Command runs:**
-   → `set()` creates a temporary state and returns a unique `stateId`.
+1.  **Command runs:**
+    → `state.set()` creates a cache entry with a TTL and returns a unique `stateId`.
 
-2. **User interacts with a component:**
-   → `get()` retrieves and validates the stored data.
+2.  **User interacts with a component:**
+    → `state.get()` retrieves the data. If the entry has expired, it returns `undefined`.
 
-3. **TTL expires:**
-   → The state is automatically deleted from memory.
+3.  **Automatic Cleanup:**
+    → Periodically, the `StateManager` removes all expired entries. If the cache is full, it evicts the least used entries.
 
 ---
 
 ## ⚠️ Best Practices
 
-- Keep your TTLs short (e.g., 5–15 minutes).
-- Always check if `get()` returns `null`.
-- Avoid storing large or many states (they’re in memory).
-- Use a database if you need persistence between restarts.
-
----
-
-## 🧩 TL;DR Example
-
-```ts
-const userState = defineState("user", z.object({ id: z.string() }));
-
-const id = userState.set({ id: "123" }); // create a temporary state
-const data = userState.get(id); // → { id: "123" }
-```
+- **Configure `maxSize` and `defaultTTL` sensibly:** Adjust the values to the use case to balance functionality and memory usage.
+- **Always check the return value of `get()`:** Always assume that the state may no longer exist (`undefined`).
+- **Use `delete()` when appropriate:** If a state can only be used once (like in the `like` example), manually remove it with `.delete()` to free up memory faster.
+- **Use a database** for data that needs to persist between bot restarts.

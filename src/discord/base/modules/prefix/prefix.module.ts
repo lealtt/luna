@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { logger } from "#utils";
 import { Registry } from "#discord/structures";
+import { ReDoSProtection } from "#discord/security";
 import {
   AliasesValidator,
   GuildIdsValidator,
@@ -32,11 +33,21 @@ export function parseFlags<T extends z.ZodObject<any>>(
       const config = flagsObject.config[flagKey];
       const separator = config?.separator ?? ":";
       const allNames = [flagKey, ...(config?.aliases ?? [])];
-      const regex = new RegExp(
-        `\\s(${allNames.join("|")})${separator}\\s*(?:"([^"]*)"|(\\S+))`,
-        "g",
-      );
+
+      const escapedNames = allNames.map((name) => ReDoSProtection.escapeRegex(name));
+      const escapedSeparator = ReDoSProtection.escapeRegex(separator);
+
+      const patternStr = `\\s(${escapedNames.join("|")})${escapedSeparator}\\s*(?:"([^"]*)"|(\\S+))`;
+
+      // Validate pattern safety
+      const safety = ReDoSProtection.isRegexSafe(patternStr);
+      if (!safety.safe) {
+        logger.error(`Unsafe regex pattern for flag "${flagKey}": ${safety.reason}`);
+        continue;
+      }
+
       try {
+        const regex = new RegExp(patternStr, "g");
         remainingInput = remainingInput.replace(
           regex,
           (_match, key, quotedValue, unquotedValue) => {
@@ -46,37 +57,42 @@ export function parseFlags<T extends z.ZodObject<any>>(
           },
         );
       } catch (error) {
-        logger.warn(`Invalid regex for flag "${flagKey}":`, error);
-        throw new Error(`Failed to parse flag "${flagKey}" due to invalid pattern.`);
+        logger.error(`Failed to parse flag "${flagKey}":`, error);
+        throw new Error(`Failed to parse flag "${flagKey}"`);
       }
     }
   }
 
   const args = remainingInput.trim().match(/(?:[^\s"]+|"[^"]*")+/g) || [];
   const spacePrefixedFlags = ["--", "-", "/"];
+
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     let flagName: string | undefined;
+
     for (const prefix of spacePrefixedFlags) {
       if (arg.startsWith(prefix)) {
         flagName = arg.substring(prefix.length);
         break;
       }
     }
+
     if (flagName && aliasMap.has(flagName)) {
       const mainFlag = aliasMap.get(flagName)!;
       let value = "true";
+
       if (i + 1 < args.length && !spacePrefixedFlags.some((p) => args[i + 1].startsWith(p))) {
         value = args[i + 1].replace(/"/g, "");
         i++;
       }
+
       flags[mainFlag] = value;
     }
   }
 
+  // Auto-detect single required string field
   if (Object.keys(flags).length === 0 && flagsObject?.schema) {
     const schemaKeys = Object.keys(flagsObject.schema.shape);
-
     const requiredStringKeys = schemaKeys.filter((key) => {
       const field = flagsObject.schema.shape[key];
       const isRequired = !field.safeParse(undefined).success;
@@ -144,7 +160,6 @@ class PrefixCommandRegistry extends Registry<PrefixCommand<any>> {
       .setNext(guildIdsValidator);
 
     nameValidator.validate(item);
-
     super.validate(item);
   }
 }

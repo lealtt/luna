@@ -1,50 +1,9 @@
-import { Collection, inlineCode, Message, time } from "discord.js";
-import { env, logger, t, type I18nKey } from "#utils";
+import { inlineCode, Message } from "discord.js";
+import { env, logger, t } from "#utils";
 import { ZodError, type ZodObject } from "zod";
 import { parseFlags, prefixCommandRegistry } from "./prefix.module.js";
 import { runMiddlewareChain } from "../shared/middleware.module.js";
-import type { PrefixCommand } from "./prefix.types.js";
-
-async function checkCooldown(message: Message, command: PrefixCommand): Promise<boolean> {
-  if (!command.cooldown) return false;
-
-  const client = message.client;
-  const cooldowns = client.cooldowns;
-
-  if (!cooldowns.has(command.name)) {
-    cooldowns.set(command.name, new Collection());
-  }
-
-  const timestamps = cooldowns.get(command.name)!;
-  const now = Date.now();
-  const cooldownAmount = command.cooldown * 1000;
-  const userTimestamp = timestamps.get(message.author.id);
-
-  if (userTimestamp && now < userTimestamp + cooldownAmount) {
-    const expirationTime = Math.floor((userTimestamp + cooldownAmount) / 1000);
-    await message.reply({
-      content: t(message.locale, "common_errors.cooldown", {
-        command: inlineCode(command.name),
-        time: time(expirationTime, "R"),
-      }),
-    });
-    return true;
-  }
-
-  timestamps.set(message.author.id, now);
-  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
-  return false;
-}
-
-async function sendErrorReply(
-  message: Message,
-  messageKey: I18nKey = "common_errors.generic",
-  variables?: Record<string, string | number>,
-): Promise<void> {
-  await message.reply({
-    content: t(message.locale, messageKey, variables),
-  });
-}
+import { rateLimitMiddleware } from "#discord/security";
 
 function formatZodError(error: ZodError, schema: ZodObject<any>): string {
   const errorMessages = error.issues.map((e) => `> • **${e.path.join(".")}**: ${e.message}`);
@@ -77,13 +36,15 @@ export async function handlePrefixCommand(message: Message): Promise<void> {
     command.guilds?.length &&
     (!message.inGuild() || !command.guilds.includes(message.guild.id))
   ) {
-    await sendErrorReply(message, "common_errors.guild_only");
+    await message.reply({
+      content: t(message.locale, "common_errors.guild_only"),
+    });
     return;
   }
 
-  if (await checkCooldown(message, command)) return;
-
   try {
+    const allMiddlewares = [rateLimitMiddleware, ...(command.middlewares ?? [])];
+
     const finalHandler = async () => {
       if (command.flags) {
         const rawArgs = content.slice(commandName.length).trim();
@@ -95,14 +56,18 @@ export async function handlePrefixCommand(message: Message): Promise<void> {
       }
     };
 
-    await runMiddlewareChain(message, command.middlewares ?? [], finalHandler);
+    await runMiddlewareChain(message, allMiddlewares, finalHandler);
   } catch (error) {
     if (error instanceof ZodError && command?.flags?.schema) {
       const fullErrorMessage = formatZodError(error, command.flags.schema as ZodObject<any>);
-      await sendErrorReply(message, "common_errors.invalid_args", { errors: fullErrorMessage });
+      await message.reply({
+        content: t(message.locale, "common_errors.invalid_args", { errors: fullErrorMessage }),
+      });
     } else {
       logger.error(`Error executing prefix command "${command.name}":`, error);
-      await sendErrorReply(message);
+      await message.reply({
+        content: t(message.locale, "common_errors.generic"),
+      });
     }
   }
 }

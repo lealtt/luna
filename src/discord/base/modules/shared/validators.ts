@@ -1,4 +1,5 @@
 import { BaseValidator } from "#discord/structures";
+import { SnowflakeUtil } from "discord.js";
 
 export class NameValidator<T extends { name: string }> extends BaseValidator<T> {
   protected execute(item: T): void {
@@ -27,6 +28,10 @@ export class TaskScheduleValidator<
         `Validation failed: task "${item.name}" must have either a 'cron' or 'interval' property.`,
       );
     }
+
+    if (item.interval !== undefined && item.interval < 1000) {
+      throw new Error(`Task "${item.name}" interval must be at least 1000ms (1 second)`);
+    }
   }
 }
 
@@ -35,9 +40,7 @@ export class AliasesValidator<
 > extends BaseValidator<T> {
   protected execute(item: T): void {
     if (item.aliases?.some((alias) => !alias || alias === item.name)) {
-      throw new Error(
-        `Validation failed: Invalid aliases for command "${item.name}". Aliases must be non-empty and distinct from the command name.`,
-      );
+      throw new Error(`Validation failed: Invalid aliases for command "${item.name}".`);
     }
   }
 }
@@ -46,10 +49,18 @@ export class GuildIdsValidator<
   T extends { guilds?: string[]; name?: string },
 > extends BaseValidator<T> {
   protected execute(item: T): void {
-    if (item.guilds?.some((id) => !/^\d+$/.test(id))) {
-      throw new Error(
-        `Validation failed: Invalid guild ID in command "${item.name}". Guild IDs must be numeric.`,
-      );
+    if (!item.guilds) return;
+
+    for (const id of item.guilds) {
+      if (!/^[0-9]{17,20}$/.test(id)) {
+        throw new Error(`Invalid guild ID in "${item.name}": ${id}`);
+      }
+
+      try {
+        SnowflakeUtil.deconstruct(id);
+      } catch {
+        throw new Error(`Invalid snowflake for guild ID in "${item.name}": ${id}`);
+      }
     }
   }
 }
@@ -61,11 +72,16 @@ export class CustomIdValidator<
     if (!item.customId || typeof item.customId !== "string" || item.customId.trim() === "") {
       throw new Error(`Validation failed: item "${item.name}" must have a non-empty customId.`);
     }
+
     const staticKey = item.customId.split("/")[0];
     if (!staticKey) {
       throw new Error(
         `Validation failed: Could not determine a static key for customId "${item.customId}".`,
       );
+    }
+
+    if (item.customId.length > 100) {
+      throw new Error(`Custom ID "${item.customId}" exceeds maximum length of 100 characters`);
     }
   }
 }

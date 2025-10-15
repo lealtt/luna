@@ -2,119 +2,20 @@
   "ping": {
     "reply": "Pong! Latency is {{latency}}ms."
   },
-  "help": {
-    "embed_title": "Command: /{{commandName}}",
-    "cooldown_field": "Cooldown",
-    "cooldown_value": "{{seconds}} seconds",
-    "command_not_found": "I couldn't find that command."
-  },
-  "mod": {
-    "reply": "Select a moderation action for {{user}}:",
-    "kick_button": "Kick",
-    "ban_button": "Ban",
-    "timeout_button": "Timeout"
-  },
-  "mod_actions": {
-    "kick_success": "Simulating kick action for user ID: {{userid}}",
-    "ban_success": "Simulating ban action for user ID: {{userid}}",
-    "timeout_success": "Simulating timeout action for user ID: {{userid}}",
-    "unknown_action": "Unknown action."
-  },
-  "mod_panel": {
-    "title": "Moderation Panel for /{{user}}",
-    "kick_description": "**Kick**: Removes the member from the server.",
-    "ban_description": "**Ban**: Permanently removes the member.",
-    "timeout_description": "**Timeout**: Prevents the member from interacting."
-  },
-  "list": {
-    "embed_title": "User List",
-    "embed_footer": "Page {{currentPage}} of {{totalPages}}"
-  },
-  "like": {
-    "reply_content": "{{author}} wants to show their appreciation for {{target}}!",
-    "button_label": "Like"
-  },
-  "like_component": {
-    "like_expired": "This like button has expired!",
-    "like_self": "You cannot like yourself through this button!",
-    "like_success": "You liked {{user}}!"
-  },
-  "bookmark": {
-    "dm_success": "I have sent the bookmarked message to your DMs! 🔖",
-    "dm_error": "I couldn't send you a DM. Please check your privacy settings.",
-    "embed_no_content": "_This message has no text content._",
-    "embed_original_message": "Original Message",
-    "embed_jump_link": "Click to jump to message"
-  },
-  "report": {
-    "modal_title": "Submit a Report",
-    "subject_label": "Subject",
-    "subject_placeholder": "e.g., Bug in the /ping command",
-    "description_label": "Description",
-    "description_placeholder": "Please describe the issue in detail.",
-    "success_message": "Thank you, your report has been submitted successfully!"
-  },
-  "profile": {
-    "embed_author": "{{user}}'s Profile",
-    "no_about_me": "This user hasn't set an 'About Me' yet.",
-    "joined_field": "Joined Server",
-    "registered_field": "Registered",
-    "footer": "User ID: {{id}}",
-    "about_modal_title": "Set Your Profile",
-    "about_modal_label": "About Me",
-    "about_modal_placeholder": "Tell us a little bit about yourself...",
-    "success_message": "Your profile has been updated successfully!"
-  },
-  "tag": {
-    "usage_help_flags": "Usage:\n- `?tag <name>`\n- `?tag --create <name> --content <content>`\n- `?tag --delete <name>`\n- `?tag --list`",
-    "create_missing_args": "You must provide a name and content to create a tag. Usage: `?tag create <name> <content>`",
-    "already_exists": "A tag named `{{name}}` already exists.",
-    "create_success": "Successfully created tag `{{name}}`.",
-    "delete_missing_args": "You must provide the name of the tag to delete. Usage: `?tag delete <name>`",
-    "not_found": "I couldn't find a tag named `{{name}}`.",
-    "delete_no_perms": "You don't have permission to delete this tag. You must be the author or have 'Manage Messages' permission.",
-    "delete_success": "Successfully deleted tag `{{name}}`.",
-    "list_empty": "There are no tags on this server yet.",
-    "list_all": "Here are all the tags for this server:\n{{list}}"
-  },
-  "mod_command": {
-    "title": "Moderation Action Logged",
-    "user_field": "User",
-    "action_field": "Action",
-    "moderator_field": "Moderator",
-    "reason_field": "Reason",
-    "no_reason": "No reason provided.",
-    "feedback": {
-      "warn_success": "Successfully warned {{user}}.",
-      "kick_success": "Successfully kicked {{user}} (simulation).",
-      "ban_success": "Successfully banned {{user}} (simulation)."
-    }
-  },
-  "staff_apply": {
-    "modal_instructions": "Please fill out the application form below with as much detail as possible.",
-    "experience_label": "What is your moderation experience?",
-    "experience_placeholder": "Describe your past experience as a staff member on other platforms or communities.",
-    "motivation_label": "Why do you want to be staff here?",
-    "motivation_placeholder": "Explain what motivates you to join our staff team and what you hope to contribute.",
-    "availability_label": "What is your availability?",
-    "availability_placeholder": "Select your primary availability",
-    "availability_options": {
-      "mornings": "Weekdays - Mornings",
-      "afternoons": "Weekdays - Afternoons",
-      "evenings": "Weekdays - Evenings",
-      "weekends": "Weekends - Full Day",
-      "flexible": "Flexible / Anytime"
-    },
-    "modal_title": "Staff Application",
-    "success_message": "Thank you for applying! We have received your application and will review it shortly."
+  "language": {
+    "modal_title": "Set Language",
+    "select_label": "Choose your preferred language",
+    "select_placeholder": "Select a language...",
+    "success_message": "Your language has been successfully set to English (US)! 🇺🇸"
   },
   "common_errors": {
+    "rate_limited": "You are being rate limited. Please try again {{time}}.",
     "generic": "An unexpected error occurred. Please try again later.",
     "cooldown": "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
     "invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
     "guild_only": "This command can only be used in a server.",
     "missing_permissions": "You are missing the required permissions for this command: `{{permissions}}`",
-    "paginator_expired": "This is not for you or has expired!",
+    "component_unauthorized": "This is not for you or has expired!",
     "optional_flags_title": "Optional Flags:",
     "invalid_user_format": "Invalid user format. Please mention a user or provide an ID.",
     "member_not_found": "Could not find the specified member in this server.",

@@ -19,7 +19,6 @@ export interface PrefixCommand<T extends z.ZodObject<any> | undefined = undefine
   aliases?: string[];
   guilds?: string[];
   flags?: T extends z.ZodObject<any> ? FlagsObject<T> : undefined;
-  cooldown?: number;
   middlewares?: Middleware<Message>[];
   run: (
     message: Message,

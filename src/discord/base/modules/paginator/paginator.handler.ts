@@ -16,7 +16,7 @@ createComponent({
 
     if (!formatPage || !state || interaction.user.id !== state.userId) {
       return interaction.reply({
-        content: t(interaction.locale, "common_errors.paginator_expired"),
+        content: t(interaction.locale, "common_errors.component_unauthorized"),
         flags: MessageFlags.Ephemeral,
       });
     }

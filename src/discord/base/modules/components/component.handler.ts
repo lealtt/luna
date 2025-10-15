@@ -1,5 +1,5 @@
 import { MessageComponentInteraction, ModalSubmitInteraction, MessageFlags } from "discord.js";
-import { logger, t, type I18nKey } from "#utils";
+import { logger, t } from "#utils";
 import { z, ZodError } from "zod";
 import { componentRegistry } from "./component.module.js";
 import {
@@ -55,24 +55,16 @@ function validateParams(
   return schema.parse(params);
 }
 
-async function sendErrorReply(
-  interaction: MessageComponentInteraction | ModalSubmitInteraction,
-  messageKey: I18nKey = "common_errors.generic",
-  variables?: Record<string, string | number>,
-): Promise<void> {
-  await interaction.reply({
-    content: t(interaction.locale, messageKey, variables),
-    flags: [MessageFlags.Ephemeral],
-  });
-}
-
 export async function handleComponentInteraction(
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
 ): Promise<void> {
   const interactionType = getComponentType(interaction);
   if (interactionType === null) {
     if (!interaction.replied && !interaction.deferred) {
-      await sendErrorReply(interaction, "common_errors.unknown_interaction");
+      await interaction.reply({
+        content: t(interaction.locale, "common_errors.unknown_interaction"),
+        flags: [MessageFlags.Ephemeral],
+      });
     }
     return;
   }
@@ -85,7 +77,10 @@ export async function handleComponentInteraction(
   if (!handlersForStaticKey) {
     if (!interaction.replied && !interaction.deferred) {
       logger.error(`No matching handler found for base custom ID: ${staticKey}`);
-      await sendErrorReply(interaction, "common_errors.no_handler");
+      await interaction.reply({
+        content: t(interaction.locale, "common_errors.no_handler"),
+        flags: [MessageFlags.Ephemeral],
+      });
     }
     return;
   }
@@ -104,7 +99,10 @@ export async function handleComponentInteraction(
   if (!handler) {
     if (!interaction.replied && !interaction.deferred) {
       logger.error(`No specific handler found for custom ID: ${interaction.customId}`);
-      await sendErrorReply(interaction, "common_errors.no_handler");
+      await interaction.reply({
+        content: t(interaction.locale, "common_errors.no_handler"),
+        flags: [MessageFlags.Ephemeral],
+      });
     }
     return;
   }
@@ -114,7 +112,10 @@ export async function handleComponentInteraction(
       logger.error(
         `Handler found for "${staticKey}" but it did not match the full custom ID or interaction type.`,
       );
-      await sendErrorReply(interaction, "common_errors.no_handler");
+      await interaction.reply({
+        content: t(interaction.locale, "common_errors.no_handler"),
+        flags: [MessageFlags.Ephemeral],
+      });
     }
     return;
   }
@@ -126,10 +127,16 @@ export async function handleComponentInteraction(
     if (!interaction.replied && !interaction.deferred) {
       if (error instanceof ZodError) {
         logger.error(`Zod validation error for "${handler.customId}":`, error.flatten());
-        await sendErrorReply(interaction, "common_errors.invalid_params");
+        await interaction.reply({
+          content: t(interaction.locale, "common_errors.invalid_params"),
+          flags: [MessageFlags.Ephemeral],
+        });
       } else {
         logger.error(`Error executing handler for "${handler.customId}":`, error);
-        await sendErrorReply(interaction);
+        await interaction.reply({
+          content: t(interaction.locale, "common_errors.generic"),
+          flags: [MessageFlags.Ephemeral],
+        });
       }
     } else {
       logger.error(

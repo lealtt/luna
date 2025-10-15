@@ -103,7 +103,6 @@ interface BaseCommand<
 > {
   type: T;
   guilds?: string[];
-  cooldown?: number;
   middlewares?: Middleware<InteractionByType<T, TContexts>>[];
   defaultMemberPermissions?: (PermissionsString | bigint)[];
   nsfw?: boolean;
@@ -139,7 +138,6 @@ export type StorableCommand = {
   type: ApplicationCommandType;
   name: string;
   guilds?: string[];
-  cooldown?: number;
   defaultMemberPermissions?: (PermissionsString | bigint)[];
   nsfw?: boolean;
   integrationTypes?: ApplicationIntegrationType[];

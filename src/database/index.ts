@@ -1,7 +1,6 @@
 import mongoose, { model, type ConnectOptions } from "mongoose";
 import { env, logger } from "#utils";
-import type { IUser, IUserModel } from "./documents/UserDocument.js";
-import { userSchema } from "./schemas/UserSchema.js";
+import { userSchema, type IUser, type IUserModel } from "./schemas/UserSchema.js";
 
 export async function connectToDatabase(): Promise<void> {
   const connectionOptions: ConnectOptions = {
@@ -22,6 +21,10 @@ export async function connectToDatabase(): Promise<void> {
   }
 }
 
-export const models = {
+interface IModels {
+  users: IUserModel;
+}
+
+export const models: IModels = {
   users: model<IUser, IUserModel>("User", userSchema),
 };

@@ -2,119 +2,20 @@
   "ping": {
     "reply": "Pong! A latência é de {{latency}}ms."
   },
-  "help": {
-    "embed_title": "Comando: /{{commandName}}",
-    "cooldown_field": "Tempo de Recarga",
-    "cooldown_value": "{{seconds}} segundos",
-    "command_not_found": "Não consegui encontrar esse comando."
-  },
-  "mod": {
-    "reply": "Selecione uma ação de moderação para {{user}}:",
-    "kick_button": "Expulsar",
-    "ban_button": "Banir",
-    "timeout_button": "Silenciar"
-  },
-  "mod_actions": {
-    "kick_success": "Simulando ação de expulsão para o usuário com ID: {{userid}}",
-    "ban_success": "Simulando ação de banimento para o usuário com ID: {{userid}}",
-    "timeout_success": "Simulando ação de silenciamento para o usuário com ID: {{userid}}",
-    "unknown_action": "Ação desconhecida."
-  },
-  "mod_panel": {
-    "title": "Painel de Moderação para {{user}}",
-    "kick_description": "**Expulsar**: Remove o membro do servidor.",
-    "ban_description": "**Banir**: Remove o membro permanentemente.",
-    "timeout_description": "**Silenciar**: Impede o membro de interagir."
-  },
-  "list": {
-    "embed_title": "Lista de Usuários",
-    "embed_footer": "Página {{currentPage}} de {{totalPages}}"
-  },
-  "like": {
-    "reply_content": "{{author}} quer demonstrar seu apreço por {{target}}!",
-    "button_label": "Curtir"
-  },
-  "like_component": {
-    "like_expired": "Este botão de curtir expirou!",
-    "like_self": "Você não pode curtir a si mesmo através deste botão!",
-    "like_success": "Você curtiu {{user}}!"
-  },
-  "bookmark": {
-    "dm_success": "Enviei a mensagem marcada para as suas DMs! 🔖",
-    "dm_error": "Não consegui enviar uma DM para você. Por favor, verifique suas configurações de privacidade.",
-    "embed_no_content": "_Esta mensagem não possui conteúdo de texto._",
-    "embed_original_message": "Mensagem Original",
-    "embed_jump_link": "Clique para ir para a mensagem"
-  },
-  "report": {
-    "modal_title": "Enviar um Relatório",
-    "subject_label": "Assunto",
-    "subject_placeholder": "ex: Bug no comando /ping",
-    "description_label": "Descrição",
-    "description_placeholder": "Por favor, descreva o problema em detalhes.",
-    "success_message": "Obrigado, seu relatório foi enviado com sucesso!"
-  },
-  "profile": {
-    "embed_author": "Perfil de {{user}}",
-    "no_about_me": "Este usuário ainda não definiu um 'Sobre Mim'.",
-    "joined_field": "Entrou no Servidor",
-    "registered_field": "Registrado",
-    "footer": "ID do Usuário: {{id}}",
-    "about_modal_title": "Definir Seu Perfil",
-    "about_modal_label": "Sobre Mim",
-    "about_modal_placeholder": "Conte-nos um pouco sobre você...",
-    "success_message": "Seu perfil foi atualizado com sucesso!"
-  },
-  "tag": {
-    "usage_help_flags": "Uso:\n- `?tag <nome>`\n- `?tag --create <nome> --content <conteúdo>`\n- `?tag --delete <nome>`\n- `?tag --list`",
-    "create_missing_args": "Você precisa fornecer um nome e conteúdo para criar uma tag. Uso: `?tag create <nome> <conteúdo>`",
-    "already_exists": "Já existe uma tag com o nome `{{name}}`.",
-    "create_success": "A tag `{{name}}` foi criada com sucesso.",
-    "delete_missing_args": "Você precisa fornecer o nome da tag para apagar. Uso: `?tag delete <nome>`",
-    "not_found": "Não consegui encontrar uma tag com o nome `{{name}}`.",
-    "delete_no_perms": "Você não tem permissão para apagar esta tag. É preciso ser o autor ou ter a permissão de 'Gerenciar Mensagens'.",
-    "delete_success": "A tag `{{name}}` foi apagada com sucesso.",
-    "list_empty": "Ainda não existem tags neste servidor.",
-    "list_all": "Aqui estão todas as tags deste servidor:\n{{list}}"
-  },
-  "mod_command": {
-    "title": "Ação de Moderação Registrada",
-    "user_field": "Usuário",
-    "action_field": "Ação",
-    "moderator_field": "Moderador",
-    "reason_field": "Motivo",
-    "no_reason": "Nenhum motivo fornecido.",
-    "feedback": {
-      "warn_success": "{{user}} foi avisado com sucesso.",
-      "kick_success": "{{user}} foi expulso com sucesso (simulação).",
-      "ban_success": "{{user}} foi banido com sucesso (simulação)."
-    }
-  },
-  "staff_apply": {
-    "modal_instructions": "Por favor, preencha o formulário de candidatura abaixo com o máximo de detalhes possível.",
-    "experience_label": "Qual é a sua experiência com moderação?",
-    "experience_placeholder": "Descreva sua experiência anterior como membro da equipe em outras plataformas ou comunidades.",
-    "motivation_label": "Por que você quer fazer parte da equipe aqui?",
-    "motivation_placeholder": "Explique o que o motiva a se juntar à nossa equipe e o que você espera contribuir.",
-    "availability_label": "Qual é a sua disponibilidade?",
-    "availability_placeholder": "Selecione sua disponibilidade principal",
-    "availability_options": {
-      "mornings": "Dias de semana - Manhãs",
-      "afternoons": "Dias de semana - Tardes",
-      "evenings": "Dias de semana - Noites",
-      "weekends": "Fins de semana - Dia inteiro",
-      "flexible": "Flexível / Qualquer horário"
-    },
-    "modal_title": "Candidatura para a Equipe",
-    "success_message": "Obrigado por se candidatar! Recebemos sua candidatura e a analisaremos em breve."
+  "language": {
+    "modal_title": "Definir Idioma",
+    "select_label": "Escolha seu idioma de preferência",
+    "select_placeholder": "Selecione um idioma...",
+    "success_message": "Seu idioma foi definido para Português (Brasil) com sucesso! 🇧🇷"
   },
   "common_errors": {
+    "rate_limited": "Você está está limitado. Tente novamente em {{time}}",
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
     "cooldown": "⏳ Por favor, aguarde antes de usar o comando {{command}} novamente. Você poderá usá-lo {{time}}.",
     "invalid_args": "**Argumentos inválidos!** Por favor, verifique os dados inseridos.\n{{errors}}",
     "guild_only": "Este comando só pode ser usado em um servidor.",
     "missing_permissions": "Você não tem as permissões necessárias para este comando: `{{permissions}}`",
-    "paginator_expired": "Este componente não é para você ou já expirou!",
+    "component_unauthorized": "Este componente não é para você ou já expirou!",
     "optional_flags_title": "Flags Opcionais:",
     "invalid_user_format": "Formato de usuário inválido. Por favor, mencione um usuário ou forneça um ID.",
     "member_not_found": "Não foi possível encontrar o membro especificado neste servidor.",

@@ -1,22 +1,20 @@
 import { createCommand } from "#discord/modules";
-import { auditChatInput } from "#discord/middlewares";
 import { t } from "#utils";
-import { ApplicationCommandType, InteractionContextType, MessageFlags } from "discord.js";
+import { ApplicationCommandType, InteractionContextType } from "discord.js";
 
 createCommand({
   name: "ping",
   description: "Replies with Pong!",
   type: ApplicationCommandType.ChatInput,
   contexts: [InteractionContextType.Guild],
-  cooldown: 5,
-  middlewares: [auditChatInput],
-  run(interaction) {
+  async run(interaction) {
+    await interaction.deferReply({ flags: ["Ephemeral"] });
+
     const { locale } = interaction;
 
     const latency = Date.now() - interaction.createdTimestamp;
 
-    interaction.reply({
-      flags: MessageFlags.Ephemeral,
+    await interaction.editReply({
       content: t(locale, "ping.reply", { latency }),
     });
   },

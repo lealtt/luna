@@ -1,19 +1,18 @@
-import { defineState } from "#utils";
-import { z } from "zod";
+import { StateManager } from "#discord/structures";
+import { Timer } from "#utils";
 
-// WARNING: DO NOT TOUCH THIS FILE!
+type PaginatorStateData = {
+  items: any[];
+  itemsPerPage: number;
+  currentPage: number;
+  userId: string;
+  paginatorId: string;
+};
 
-/**
- * State for a paginator instance.
- * It now stores all the necessary data to render any page.
- */
-export const paginatorState = defineState(
-  "paginator",
-  z.object({
-    items: z.array(z.any()),
-    itemsPerPage: z.number(),
-    currentPage: z.number(),
-    userId: z.string(),
-    paginatorId: z.string(),
-  }),
-);
+export const paginatorState = new StateManager<PaginatorStateData>({
+  name: "Paginator",
+  maxSize: 1000,
+  defaultTTL: Timer(10).min(),
+  cleanupInterval: Timer(1).min(),
+  warningThreshold: 0.9,
+});
