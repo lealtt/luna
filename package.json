@@ -47,7 +47,7 @@
     "#discord/security": "./dist/discord/base/security/index.js",
     "#discord/builders": "./dist/discord/base/builders/index.js",
     "#discord/functions": [
-      "./dist/discord/base/functions/index.ts"
+      "./dist/discord/functions/index.js"
     ],
     "#database": "./dist/database/index.js",
     "#utils": "./dist/utils/index.js",

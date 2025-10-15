@@ -8,6 +8,10 @@
     },
     "calculator": {
       "description": "Opens an interactive calculator."
+    },
+    "showcase": {
+      "name": "showcase",
+      "description": "Displays a showcase of all V2 components."
     }
   }
 }

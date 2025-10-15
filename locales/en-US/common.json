@@ -8,6 +8,15 @@
     "select_placeholder": "Select a language...",
     "success_message": "Your language has been successfully set to English (US)! 🇺🇸"
   },
+  "showcase": {
+    "title": "V2 Components Showcase",
+    "description": "This is a demonstration of the major V2 components available through the builders.",
+    "thumbnail_desc": "Thumbnails are great accessories!",
+    "gallery_item_desc": "Images can have descriptions",
+    "file_title": "File Component",
+    "button_primary": "Primary Button",
+    "button_secondary": "Secondary"
+  },
   "common_errors": {
     "rate_limited": "You are being rate limited. Please try again {{time}}.",
     "generic": "An unexpected error occurred. Please try again later.",

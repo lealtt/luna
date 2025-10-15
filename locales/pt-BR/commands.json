@@ -10,6 +10,9 @@
     "calculator": {
       "name": "calculadora",
       "description": "Abre uma calculadora interativa."
+    },
+    "showcase": {
+      "description": "Exibe um showcase com todos os componentes V2."
     }
   }
 }

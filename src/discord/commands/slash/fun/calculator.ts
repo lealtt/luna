@@ -7,7 +7,7 @@ createCommand({
   name: "calculator",
   description: "Opens an interactive calculator.",
   type: ApplicationCommandType.ChatInput,
-  contexts: [InteractionContextType.Guild, InteractionContextType.BotDM],
+  contexts: [InteractionContextType.Guild],
   run(interaction) {
     const initialState: CalculatorStateData = {
       display: "0",

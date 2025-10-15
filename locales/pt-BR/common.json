@@ -8,6 +8,15 @@
     "select_placeholder": "Selecione um idioma...",
     "success_message": "Seu idioma foi definido para Português (Brasil) com sucesso! 🇧🇷"
   },
+  "showcase": {
+    "title": "Showcase dos Componentes V2",
+    "description": "Esta é uma demonstração dos principais componentes V2 disponíveis através dos construtores.",
+    "thumbnail_desc": "Miniaturas são ótimos acessórios!",
+    "gallery_item_desc": "Imagens podem ter descrições",
+    "file_title": "Componente de Arquivo",
+    "button_primary": "Botão Primário",
+    "button_secondary": "Secundário"
+  },
   "common_errors": {
     "rate_limited": "Você está está limitado. Tente novamente em {{time}}",
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
