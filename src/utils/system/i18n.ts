@@ -2,10 +2,11 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { Locale } from "discord.js";
 import { logger } from "../system/logger.js";
-import enCommon from "#enJson" with { type: "json" };
-import enCommands from "#enCommandsJson" with { type: "json" };
 
-const typedTranslations = { enCommon, enCommands } as const;
+// Define types from English JSON for key structure
+type EnCommon = typeof import("#enJson");
+type EnCommands = typeof import("#enCommandsJson");
+type MergedEN = EnCommon & EnCommands;
 
 /**
  * A type that recursively generates all possible dot-notation keys from an object.
@@ -23,8 +24,6 @@ type DotNestedKeys<T> = (
   ? Extract<D, string>
   : never;
 
-type MergedEN = typeof typedTranslations.enCommon & typeof typedTranslations.enCommands;
-
 /**
  * A strongly-typed union of all available translation keys.
  */
@@ -35,15 +34,8 @@ export type I18nKey = DotNestedKeys<MergedEN>;
  */
 export type TranslationVariables = Record<string, string | number>;
 
-const supportedLngs = [Locale.EnglishUS, Locale.PortugueseBR];
-const fallbackLng = Locale.EnglishUS;
-
-const resources: Record<string, Record<string, any>> = {
-  [fallbackLng]: {
-    ...typedTranslations.enCommon,
-    ...typedTranslations.enCommands,
-  },
-};
+// Global resources object
+const resources: Record<string, Record<string, any>> = {};
 
 async function loadJsonFile(filePath: string): Promise<Record<string, any> | undefined> {
   try {
@@ -56,12 +48,17 @@ async function loadJsonFile(filePath: string): Promise<Record<string, any> | und
 
 /**
  * Loads all translation files for the supported languages into memory.
+ * @param fallbackLng The fallback language (default: en-US).
+ * @param otherSupportedLngs Additional supported languages to load.
  */
-export async function setupI18n() {
+export async function setupI18n(
+  fallbackLng: Locale = Locale.EnglishUS,
+  ...otherSupportedLngs: Locale[]
+) {
+  const supportedLngs = [...new Set([fallbackLng, ...otherSupportedLngs])];
   const localesDir = path.resolve(process.cwd(), "locales");
-  const otherLanguages = supportedLngs.filter((lang) => lang !== fallbackLng);
 
-  const loadPromises = otherLanguages.map(async (lang) => {
+  const loadPromises = supportedLngs.map(async (lang) => {
     const commonPath = path.join(localesDir, lang, "common.json");
     const commandsPath = path.join(localesDir, lang, "commands.json");
     const commonContent = await loadJsonFile(commonPath);
@@ -84,16 +81,16 @@ function getNestedValue(obj: Record<string, any>, key: string): string | undefin
 
 /**
  * Gets a translated string for a given key and interpolates variables.
- * @param lng The language to use (e.g., "en-US").
+ * @param lng The language to use (e.g., "en-US" or Locale.EnglishUS).
  * @param key The translation key (e.g., "ping.reply").
  * @param variables An optional object of variables to replace in the string.
  * @returns The translated and formatted string.
  */
-export function t(lng: string, key: I18nKey, variables?: TranslationVariables): string {
+export function t(lng: Locale | string, key: I18nKey, variables?: TranslationVariables): string {
   let text: string | undefined;
 
   const normalizedLng = lng.replace("_", "-");
-  const langFile = resources[normalizedLng] ?? resources[fallbackLng];
+  const langFile = resources[normalizedLng] ?? resources[Locale.EnglishUS] ?? {}; // Fallback to en-US if not loaded
   text = getNestedValue(langFile, key);
 
   if (text === undefined) {
@@ -115,10 +112,10 @@ export function t(lng: string, key: I18nKey, variables?: TranslationVariables): 
  */
 export function getLocalizations(key: I18nKey): Record<string, string> {
   const localizations: Record<string, string> = {};
-  const fallbackText = getNestedValue(resources[fallbackLng], key);
+  const fallbackText = getNestedValue(resources[Locale.EnglishUS], key);
 
-  for (const lang of supportedLngs) {
-    if (lang === fallbackLng) continue;
+  for (const lang in resources) {
+    if (lang === Locale.EnglishUS) continue;
     const langFile = resources[lang];
     const translation = langFile ? getNestedValue(langFile, key) : undefined;
     if (translation && translation !== fallbackText) {

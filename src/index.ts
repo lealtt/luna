@@ -5,7 +5,7 @@
  */
 
 import { lunaBootstrap } from "#discord/bootstrap";
-import { GatewayIntentBits as Intents, Partials } from "discord.js";
+import { GatewayIntentBits as Intents, Partials, Locale } from "discord.js";
 
 await lunaBootstrap({
   intents: Object.values(Intents).filter((v): v is Intents => typeof v === "number"),
@@ -15,4 +15,8 @@ await lunaBootstrap({
    * Its previous optional nature caused inconsistencies in the codebase,
    * both in command configurations and response messages.
    */
+  locales: {
+    default: Locale.EnglishUS,
+    supported: [Locale.PortugueseBR, Locale.SpanishES],
+  },
 });

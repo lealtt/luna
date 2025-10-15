@@ -1,0 +1,35 @@
+{
+  "ping": {
+    "reply": "¡Pong! La latencia es de {{latency}}ms."
+  },
+  "language": {
+    "modal_title": "Establecer Idioma",
+    "select_label": "Elige tu idioma preferido",
+    "select_placeholder": "Selecciona un idioma...",
+    "success_message": "¡Tu idioma se ha establecido correctamente a Español! 🇪🇸"
+  },
+  "showcase": {
+    "title": "Exhibición de Componentes V2",
+    "description": "Esta es una demostración de los principales componentes V2 disponibles a través de los constructores.",
+    "thumbnail_desc": "¡Las miniaturas son excelentes accesorios!",
+    "gallery_item_desc": "Las imágenes pueden tener descripciones",
+    "file_title": "Componente de Archivo",
+    "button_primary": "Botón Primario",
+    "button_secondary": "Secundario"
+  },
+  "common_errors": {
+    "rate_limited": "Estás excediendo el límite de solicitudes. Por favor, inténtalo de nuevo {{time}}.",
+    "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.",
+    "cooldown": "⏳ Por favor, espera antes de usar {{command}} de nuevo. Puedes volver a usarlo {{time}}.",
+    "invalid_args": "**¡Argumentos inválidos!** Por favor, revisa tu entrada.\n{{errors}}",
+    "guild_only": "Este comando solo se puede usar en un servidor.",
+    "missing_permissions": "Te faltan los permisos necesarios para este comando: `{{permissions}}`",
+    "component_unauthorized": "¡Esto no es para ti o ha expirado!",
+    "optional_flags_title": "Opciones Opcionales:",
+    "invalid_user_format": "Formato de usuario inválido. Por favor, menciona a un usuario o proporciona una ID.",
+    "member_not_found": "No se pudo encontrar al miembro especificado en este servidor.",
+    "invalid_params": "Este componente recibió parámetros inválidos. Por favor, intenta interactuar con él de nuevo.",
+    "no_handler": "Este componente interactivo ha expirado o ya no está activo.",
+    "unknown_interaction": "Se recibió una interacción no reconocida. Si este problema persiste, por favor, contacta al desarrollador."
+  }
+}

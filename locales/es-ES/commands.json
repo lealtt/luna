@@ -1,0 +1,18 @@
+{
+  "commands": {
+    "ping": {
+      "description": "Verifica la latencia del bot."
+    },
+    "language": {
+      "name": "idioma",
+      "description": "Establece tu idioma preferido para el bot."
+    },
+    "calculator": {
+      "name": "calculadora",
+      "description": "Abre una calculadora interactiva."
+    },
+    "showcase": {
+      "description": "Muestra una exhibición de todos los componentes V2."
+    }
+  }
+}

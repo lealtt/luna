@@ -19,6 +19,11 @@ export function createLanguageModal(interaction: ChatInputCommandInteraction<"ca
         value: Locale.PortugueseBR,
         emoji: "🇧🇷",
       },
+      {
+        label: "Spanish (ES)",
+        value: Locale.SpanishES,
+        emoji: "🇪🇸"
+      }
     ],
   });
 

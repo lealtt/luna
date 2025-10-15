@@ -1,7 +1,7 @@
 import "./client.js";
 import { pathToFileURL } from "node:url";
 import { resolve, normalize } from "node:path";
-import { Client, Collection, GatewayIntentBits, Partials, SnowflakeUtil } from "discord.js";
+import { Client, Collection, GatewayIntentBits, Partials, SnowflakeUtil, Locale } from "discord.js";
 import { glob } from "glob";
 import { logger, env, setupI18n } from "#utils";
 import { commandRegistry, registerApplicationCommands } from "./modules/commands/command.module.js";
@@ -15,20 +15,29 @@ interface BootstrapOptions {
   readonly intents: readonly GatewayIntentBits[];
   readonly partials: readonly Partials[];
   readonly guilds?: readonly string[];
+  readonly locales: {
+    readonly default: Locale;
+    readonly supported: readonly Locale[];
+  };
 }
 
 const validIntents = Object.values(GatewayIntentBits).filter(
   (v): v is GatewayIntentBits => typeof v === "number",
 );
 const validPartials = Object.values(Partials).filter((v): v is Partials => typeof v === "number");
+const validLocales = Object.values(Locale);
 
 function validateOptions(options: BootstrapOptions): BootstrapOptions {
-  const { intents, partials, guilds } = options;
+  const { intents, partials, guilds, locales } = options;
 
   return {
     intents: intents.filter((intent) => validIntents.includes(intent)),
     partials: partials.filter((partial) => validPartials.includes(partial)),
     guilds: guilds?.filter(isValidSnowflake),
+    locales: {
+      default: validLocales.includes(locales.default) ? locales.default : Locale.EnglishUS,
+      supported: locales.supported.filter((locale) => validLocales.includes(locale)),
+    },
   };
 }
 
@@ -96,10 +105,10 @@ export async function lunaBootstrap(options: BootstrapOptions): Promise<void> {
   process.on("SIGTERM", () => shutdown(client));
 
   try {
-    const { intents, partials, guilds } = validateOptions(options);
+    const { intents, partials, guilds, locales } = validateOptions(options);
 
     await connectToDatabase();
-    await setupI18n();
+    await setupI18n(locales.default, ...locales.supported);
 
     client = new Client({ intents, partials });
     client.commands = new Collection<string, StorableCommand>();
