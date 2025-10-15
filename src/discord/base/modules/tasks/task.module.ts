@@ -9,6 +9,7 @@ import type { Task } from "./task.types.js";
 class TaskRegistry extends Registry<Task> {
   private static instance: TaskRegistry;
   protected readonly registryName = "Task";
+  private validationCache = new Map<string, boolean>();
 
   protected constructor() {
     super();
@@ -22,6 +23,11 @@ class TaskRegistry extends Registry<Task> {
   }
 
   protected validate(item: Task): void {
+    const cacheKey = `${item.name}:${item.interval ?? ""}:${item.cron ?? ""}:${item.run.toString()}`;
+    if (this.validationCache.has(cacheKey)) {
+      return;
+    }
+
     const nameValidator = new NameValidator<Task>();
     const runFunctionValidator = new RunFunctionValidator<Task>();
     const scheduleValidator = new TaskScheduleValidator<Task>();
@@ -30,6 +36,7 @@ class TaskRegistry extends Registry<Task> {
 
     nameValidator.validate(item);
 
+    this.validationCache.set(cacheKey, true);
     super.validate(item);
   }
 }

@@ -6,7 +6,7 @@ import { glob } from "glob";
 import { logger, env, setupI18n } from "#utils";
 import { commandRegistry, registerApplicationCommands } from "./modules/commands/command.module.js";
 import { registerClientEvents } from "./modules/events/events.module.js";
-import { startTaskRunner } from "./modules/tasks/task.handler.js";
+import { startTaskRunner, cleanupTasks } from "./modules/tasks/task.handler.js";
 import type { StorableCommand } from "./modules/commands/command.types.js";
 import { connectToDatabase } from "#database";
 import { paginatorState } from "#states";
@@ -112,6 +112,8 @@ export async function lunaBootstrap(options: BootstrapOptions): Promise<void> {
 
     client = new Client({ intents, partials });
     client.commands = new Collection<string, StorableCommand>();
+
+    cleanupTasks(client);
 
     await loadAllModules(process.cwd(), import.meta.url.includes("/dist/"));
 

@@ -4,7 +4,6 @@ import {
   InteractionContextType,
   type Client,
 } from "discord.js";
-import { NameValidator, RunFunctionValidator } from "../shared/validators.js";
 import { DiscordApiFacade } from "./command.facade.js";
 import type {
   AnyCommand,
@@ -84,14 +83,12 @@ class CommandRegistry extends Registry<StorableCommand> {
   }
 
   protected validate(item: StorableCommand): void {
-    const zodItem = AnyCommandSchema.safeParse(item);
-    if (!zodItem.success) {
-      throw new Error(`Zod validation failed: ${zodItem.error.message}`);
+    const zodValidation = AnyCommandSchema.safeParse(item);
+    if (!zodValidation.success) {
+      const errorMessage = zodValidation.error.issues.map((issue) => issue.message).join("\n");
+      throw new Error(`Command validation failed for "${item.name}":\n${errorMessage}`);
     }
-    const nameValidator = new NameValidator<StorableCommand>();
-    const runFunctionValidator = new RunFunctionValidator<StorableCommand>();
-    nameValidator.setNext(runFunctionValidator);
-    nameValidator.validate(item);
+
     super.validate(item);
   }
 
