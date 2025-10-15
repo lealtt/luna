@@ -24,7 +24,6 @@ const BaseCommandSchema = z.object({
   name: z.string().min(1, { message: "Command name cannot be empty." }),
   type: z.enum(ApplicationCommandType),
   guilds: z.array(z.string()).optional(),
-  cooldown: z.number().positive().optional(),
   middlewares: z.array(z.function()).optional(),
   run: z.function(),
 });
