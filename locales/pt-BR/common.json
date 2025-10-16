@@ -20,13 +20,11 @@
   "common_errors": {
     "rate_limited": "Você está está limitado. Tente novamente em {{time}}",
     "generic": "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
-    "cooldown": "⏳ Por favor, aguarde antes de usar o comando {{command}} novamente. Você poderá usá-lo {{time}}.",
     "invalid_args": "**Argumentos inválidos!** Por favor, verifique os dados inseridos.\n{{errors}}",
     "guild_only": "Este comando só pode ser usado em um servidor.",
     "missing_permissions": "Você não tem as permissões necessárias para este comando: `{{permissions}}`",
     "component_unauthorized": "Este componente não é para você ou já expirou!",
     "optional_flags_title": "Flags Opcionais:",
-    "invalid_user_format": "Formato de usuário inválido. Por favor, mencione um usuário ou forneça um ID.",
     "member_not_found": "Não foi possível encontrar o membro especificado neste servidor.",
     "invalid_params": "Este componente recebeu parâmetros inválidos. Tente interagir com ele novamente.",
     "no_handler": "Essa interação expirou ou não está mais ativa.",

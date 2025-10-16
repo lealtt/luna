@@ -9,7 +9,7 @@ import { registerClientEvents } from "./modules/events/events.module.js";
 import { startTaskRunner, cleanupTasks } from "./modules/tasks/task.handler.js";
 import type { StorableCommand } from "./modules/commands/command.types.js";
 import { connectToDatabase } from "#database";
-import { paginatorState } from "#states";
+import { paginatorState } from "./modules/paginator/paginator.state.js";
 
 interface BootstrapOptions {
   readonly intents: readonly GatewayIntentBits[];
@@ -130,15 +130,8 @@ export async function lunaBootstrap(options: BootstrapOptions): Promise<void> {
     await registerApplicationCommands(client, guilds);
 
     logger.success("🍃 Luna is ready.");
-    logMemoryStats();
   } catch (error) {
     logger.error("A critical error occurred during bot startup:", error);
     await shutdown(client);
   }
-}
-
-function logMemoryStats(): void {
-  const paginatorStats = paginatorState.getStats();
-
-  logger.info(`Memory Stats - Paginators: ${paginatorStats.size}/${paginatorStats.maxSize}`);
 }

@@ -1,13 +1,8 @@
 import { StateManager } from "#discord/structures";
 import { Timer } from "#utils";
+import type { PaginatorState } from "#discord/modules";
 
-type PaginatorStateData = {
-  items: any[];
-  itemsPerPage: number;
-  currentPage: number;
-  userId: string;
-  paginatorId: string;
-};
+export type PaginatorStateData<T = any> = PaginatorState<T>;
 
 export const paginatorState = new StateManager<PaginatorStateData>({
   name: "Paginator",

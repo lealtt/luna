@@ -20,13 +20,11 @@
   "common_errors": {
     "rate_limited": "You are being rate limited. Please try again {{time}}.",
     "generic": "An unexpected error occurred. Please try again later.",
-    "cooldown": "⏳ Please wait before using {{command}} again. You can reuse it {{time}}.",
     "invalid_args": "**Invalid arguments!** Please check your input.\n{{errors}}",
     "guild_only": "This command can only be used in a server.",
     "missing_permissions": "You are missing the required permissions for this command: `{{permissions}}`",
     "component_unauthorized": "This is not for you or has expired!",
     "optional_flags_title": "Optional Flags:",
-    "invalid_user_format": "Invalid user format. Please mention a user or provide an ID.",
     "member_not_found": "Could not find the specified member in this server.",
     "invalid_params": "This component received invalid parameters. Please try interacting with it again.",
     "no_handler": "This interactive component has expired or is no longer active.",

@@ -16,7 +16,7 @@ import type {
   MessageContextMenuCommand,
 } from "./command.types.js";
 import { z } from "zod";
-import { env } from "#utils";
+import { env, logger } from "#utils";
 import { Registry } from "#discord/structures";
 
 const BaseCommandSchema = z.object({
@@ -70,6 +70,7 @@ function findAutocompleteHandlers(
 class CommandRegistry extends Registry<StorableCommand> {
   private static instance: CommandRegistry;
   protected readonly registryName = "Command";
+  public readonly nestedStore = new Map<string, Map<string, StorableCommand>>();
 
   protected constructor() {
     super();
@@ -82,17 +83,57 @@ class CommandRegistry extends Registry<StorableCommand> {
     return CommandRegistry.instance;
   }
 
+  public getCommandMap(key: string): Map<string, StorableCommand> | undefined {
+    return this.nestedStore.get(key);
+  }
+
+  public register(item: StorableCommand): void {
+    try {
+      this.validate(item);
+
+      this.store.set(item.name, item);
+
+      const staticKey = item.name;
+      if (!this.nestedStore.has(staticKey)) {
+        this.nestedStore.set(staticKey, new Map<string, StorableCommand>());
+      }
+      this.nestedStore.get(staticKey)!.set(item.name, item);
+
+      this.postRegister(item);
+    } catch (error) {
+      logger.error(`Failed to register command "${item.name}":`, error);
+    }
+  }
+
   protected validate(item: StorableCommand): void {
     const zodValidation = AnyCommandSchema.safeParse(item);
     if (!zodValidation.success) {
       const errorMessage = zodValidation.error.issues.map((issue) => issue.message).join("\n");
       throw new Error(`Command validation failed for "${item.name}":\n${errorMessage}`);
     }
-
     super.validate(item);
   }
 
   protected postRegister(item: StorableCommand): void {
+    if (!(item as any).silent) {
+      let commandTypeLabel: string;
+      switch (item.type) {
+        case ApplicationCommandType.ChatInput:
+          commandTypeLabel = "/";
+          break;
+        case ApplicationCommandType.User:
+          commandTypeLabel = "User";
+          break;
+        case ApplicationCommandType.Message:
+          commandTypeLabel = "Message";
+          break;
+        default:
+          commandTypeLabel = "Unknown";
+          break;
+      }
+      logger.info(`Registered command: ${item.name} (${commandTypeLabel})`);
+    }
+
     if (item.type === ApplicationCommandType.ChatInput && "options" in item && item.options) {
       const handlers = new Map<string, AutocompleteHandler<any>>();
       findAutocompleteHandlers(item.options as CommandOption<any>[], handlers);
@@ -100,7 +141,6 @@ class CommandRegistry extends Registry<StorableCommand> {
         autocompleteRegistry.set(item.name, handlers);
       }
     }
-    super.postRegister(item);
   }
 }
 
