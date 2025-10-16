@@ -2,81 +2,118 @@ import {
   type ModalSubmitInteraction,
   type ModalSubmitFields,
   type CacheType,
-  User,
-  Role,
+  type User,
+  type Role,
   type Channel,
 } from "discord.js";
+import { logger } from "../system/logger.js";
 
-// Supported field types and their outputs
-interface FieldOutput {
+/**
+ * Extracts values from a Discord modal interaction based on a schema.
+ * This provides a simple, type-safe way to get text inputs, selections, and more.
+ *
+ * @example
+ * // Basic usage for text inputs
+ * const { username, bio } = extractModalValues(interaction, {
+ * username: "user-form/username",
+ * bio: "user-form/bio"
+ * });
+ * // Returns: { username: string, bio: string }
+ *
+ * @example
+ * // Usage with specific field types like roles and string selects
+ * const { tags, roles } = extractModalValues(interaction, {
+ * tags: ["staff-apply/tags", "strings"],
+ * roles: ["staff-apply/roles", "roles"]
+ * });
+ * // Returns: { tags: string[], roles: Role[] }
+ *
+ * @param interaction The ModalSubmitInteraction to extract values from.
+ * @param schema An object mapping field names to their customId or a [customId, type] tuple.
+ * @returns An object with the extracted values, with types inferred from the schema.
+ * @throws {Error} If the interaction has no fields.
+ */
+export function extractModalValues<
+  const T extends Record<string, string | readonly [string, FieldType]>,
+>(interaction: ModalSubmitInteraction<CacheType>, schema: T): ModalValuesOutput<T> {
+  const fields = interaction.fields;
+
+  if (!fields) {
+    throw new Error("Modal fields not found");
+  }
+
+  const result: Record<string, any> = {};
+
+  for (const [key, value] of Object.entries(schema)) {
+    const [customId, type] = typeof value === "string" ? [value, "text" as const] : value;
+
+    result[key] = extractField(fields, customId, type);
+  }
+
+  return result as ModalValuesOutput<T>;
+}
+
+type FieldType = "text" | "strings" | "users" | "roles" | "channels" | "mentionables";
+
+type FieldTypeOutput = {
+  text: string;
   strings: readonly string[];
   users: User[];
   roles: Role[];
   channels: Channel[];
   mentionables: (User | Role)[];
-  text: string;
-}
-
-// Maps field names to their type and customId
-type ExtractorInput = Record<string, { type: keyof FieldOutput; customId: string }>;
-
-// Extraction logic for each field type
-const extractors: Record<
-  keyof FieldOutput,
-  (fields: ModalSubmitFields<CacheType>, customId: string) => FieldOutput[keyof FieldOutput]
-> = {
-  strings: (fields, customId) => fields.getStringSelectValues(customId) ?? [],
-  users: (fields, customId) =>
-    Array.from(fields.getSelectedUsers(customId)?.values() ?? []).filter(Boolean) as User[],
-  roles: (fields, customId) =>
-    Array.from(fields.getSelectedRoles(customId)?.values() ?? []).filter(
-      (r): r is Role => r !== null,
-    ),
-  channels: (fields, customId) =>
-    Array.from(fields.getSelectedChannels(customId)?.values() ?? []).filter(Boolean) as Channel[],
-  mentionables: (fields, customId) => {
-    const mentionables = fields.getSelectedMentionables(customId);
-    if (!mentionables) return [];
-    return [
-      ...Array.from(mentionables.users.values()).filter(Boolean),
-      ...Array.from(mentionables.roles.values()).filter((r): r is Role => r !== null),
-    ] as (User | Role)[];
-  },
-  text: (fields, customId) => fields.getTextInputValue(customId) ?? "",
 };
 
-/**
- * Extracts values from a Discord modal interaction based on a field-to-type mapping.
- * Supports strings, users, roles, channels, mentionables, and text fields.
- *
- * @example
- * const { experience, motivation, roles } = modalValues(interaction, () => ({
- *   experience: { type: 'text', customId: 'staff-apply/experience' },
- *   motivation: { type: 'text', customId: 'staff-apply/motivation' },
- *   roles: { type: 'roles', customId: 'staff-apply/roles' },
- * }));
- * // Returns: { experience: string, motivation: string, roles: Role[] }
- *
- * @param interaction The modal submit interaction
- * @param extractor Function mapping field names to their types and customIds
- * @returns An object with extracted values matching the specified types
- * @throws Error if the interaction has no fields
- */
-export function modalValues<T extends ExtractorInput>(
-  interaction: ModalSubmitInteraction<CacheType>,
-  extractor: (fields: ModalSubmitFields<CacheType>) => T,
-): { [K in keyof T]: FieldOutput[T[K]["type"]] } {
-  if (!interaction.fields) {
-    throw new Error("Modal interaction has no fields");
+type ModalValuesOutput<T extends Record<string, string | readonly [string, FieldType]>> = {
+  [K in keyof T]: T[K] extends readonly [string, infer Type extends FieldType]
+    ? FieldTypeOutput[Type]
+    : string;
+};
+
+function extractField(
+  fields: ModalSubmitFields<CacheType>,
+  customId: string,
+  type: FieldType,
+): any {
+  try {
+    switch (type) {
+      case "text":
+        return fields.getTextInputValue(customId) ?? "";
+
+      case "strings":
+        return fields.getStringSelectValues(customId) ?? [];
+
+      case "users": {
+        const users = fields.getSelectedUsers(customId);
+        return users ? Array.from(users.values()).filter(Boolean) : [];
+      }
+
+      case "roles": {
+        const roles = fields.getSelectedRoles(customId);
+        return roles ? Array.from(roles.values()).filter((r): r is Role => r !== null) : [];
+      }
+
+      case "channels": {
+        const channels = fields.getSelectedChannels(customId);
+        return channels ? Array.from(channels.values()).filter(Boolean) : [];
+      }
+
+      case "mentionables": {
+        const mentionables = fields.getSelectedMentionables(customId);
+        if (!mentionables) return [];
+
+        return [
+          ...Array.from(mentionables.users.values()).filter(Boolean),
+          ...Array.from(mentionables.roles.values()).filter((r): r is Role => r !== null),
+        ];
+      }
+
+      default:
+        return "";
+    }
+  } catch (error) {
+    logger.error(error);
+    if (type === "text") return "";
+    return [];
   }
-
-  const fields = interaction.fields as ModalSubmitFields<CacheType>;
-  const fieldConfigs = extractor(fields);
-
-  return Object.fromEntries(
-    Object.entries(fieldConfigs).map(([key, { type, customId }]) => [
-      key,
-      extractors[type]?.(fields, customId) ?? [],
-    ]),
-  ) as { [K in keyof T]: FieldOutput[T[K]["type"]] };
 }

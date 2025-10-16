@@ -1,6 +1,6 @@
 import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { models } from "#database";
-import { modalValues, t } from "#utils";
+import { extractModalValues, t } from "#utils";
 import { Locale } from "discord.js";
 
 createComponent({
@@ -10,9 +10,9 @@ createComponent({
   async run(interaction, { userId }) {
     await interaction.deferReply({ flags: "Ephemeral" });
 
-    const { language } = modalValues(interaction, () => ({
-      language: { type: "strings", customId: "language-select" },
-    }));
+    const { language } = extractModalValues(interaction, {
+      language: ["language-select", "strings"],
+    });
 
     const selectedLocale = language[0] as Locale;
 
