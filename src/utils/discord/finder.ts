@@ -6,281 +6,287 @@ import {
   NewsChannel,
   Role,
   TextChannel,
-  ThreadChannel,
   User,
   VoiceChannel,
+  StageChannel,
+  ForumChannel,
+  type PublicThreadChannel,
+  type PrivateThreadChannel,
   type Channel,
   type Client,
   type MessageComponentInteraction,
   type ModalSubmitInteraction,
+  ThreadChannel,
+  ChannelType,
 } from "discord.js";
 import type { CommandContext } from "#discord/modules";
 
 type FinderContext = Client | CommandContext | MessageComponentInteraction | ModalSubmitInteraction;
 
+const channelTypeGuards = {
+  text: (ch: Channel): ch is TextChannel => ch.type === ChannelType.GuildText,
+  voice: (ch: Channel): ch is VoiceChannel => ch.type === ChannelType.GuildVoice,
+  category: (ch: Channel): ch is CategoryChannel => ch.type === ChannelType.GuildCategory,
+  news: (ch: Channel): ch is NewsChannel => ch.type === ChannelType.GuildAnnouncement,
+  thread: (ch: Channel): ch is PublicThreadChannel<boolean> | PrivateThreadChannel =>
+    ch.type === ChannelType.PublicThread ||
+    ch.type === ChannelType.PrivateThread ||
+    ch.type === ChannelType.AnnouncementThread,
+  stage: (ch: Channel): ch is StageChannel => ch.type === ChannelType.GuildStageVoice,
+  forum: (ch: Channel): ch is ForumChannel => ch.type === ChannelType.GuildForum,
+} as const;
+
+type ChannelTypes = keyof typeof channelTypeGuards;
+
+type ChannelTypeMap = {
+  text: TextChannel;
+  voice: VoiceChannel;
+  category: CategoryChannel;
+  news: NewsChannel;
+  thread: PublicThreadChannel<boolean> | PrivateThreadChannel;
+  stage: StageChannel;
+  forum: ForumChannel;
+};
+
+type TypedChannel<T extends ChannelTypes> = ChannelTypeMap[T];
+
 /**
- * A custom Promise class with additional chainable assertion methods.
+ * A modern utility for fetching Discord entities with a fluent and type-safe API.
+ *
+ * @param context The command context (interaction/message) or a Client instance.
+ * @param id The ID of the entity to find.
+ * @returns An object with methods to fetch different entities.
+ *
+ * @example
+ * // Simple fetch with a fallback
+ * const user = await find(ctx, userId).user() ?? defaultUser;
+ *
+ * @example
+ * // Fetch a specific channel type
+ * const textChannel = await find(ctx, channelId).channel("text");
+ *
+ * @example
+ * // Access the cached entity directly (synchronous)
+ * const cachedMember = find(ctx, memberId).member(guild).cached;
  */
-class FinderPromise<T> extends Promise<T> {
-  constructor(executor: (resolve: (value: T) => void, reject: (reason?: any) => void) => void) {
-    super(executor);
-  }
+export function find(context: FinderContext, id: string) {
+  const client = "client" in context ? context.client! : context;
+
+  return {
+    user: Object.assign(
+      async (): Promise<User | null> => {
+        try {
+          return await client.users.fetch(id);
+        } catch {
+          return null;
+        }
+      },
+      {
+        cached: client.users.cache.get(id),
+      },
+    ),
+
+    channel: Object.assign(
+      (async (type?: ChannelTypes): Promise<Channel | null> => {
+        try {
+          const channel = await client.channels.fetch(id);
+          if (!channel) return null;
+
+          if (type && !channelTypeGuards[type](channel)) {
+            return null;
+          }
+
+          return channel;
+        } catch {
+          return null;
+        }
+      }) as {
+        <T extends ChannelTypes>(type: T): Promise<TypedChannel<T> | null>;
+        (): Promise<Channel | null>;
+      },
+      {
+        cached: client.channels.cache.get(id),
+      },
+    ),
+
+    guild: Object.assign(
+      async (): Promise<Guild | null> => {
+        try {
+          return await client.guilds.fetch(id);
+        } catch {
+          return null;
+        }
+      },
+      {
+        cached: client.guilds.cache.get(id),
+      },
+    ),
+
+    member: (guild: Guild) =>
+      Object.assign(
+        async (): Promise<GuildMember | null> => {
+          try {
+            return await guild.members.fetch(id);
+          } catch {
+            return null;
+          }
+        },
+        {
+          cached: guild.members.cache.get(id),
+        },
+      ),
+
+    role: (guild: Guild) =>
+      Object.assign(
+        async (): Promise<Role | null> => {
+          try {
+            return await guild.roles.fetch(id);
+          } catch {
+            return null;
+          }
+        },
+        {
+          cached: guild.roles.cache.get(id),
+        },
+      ),
+
+    message: (channel: TextChannel | NewsChannel | ThreadChannel) =>
+      Object.assign(
+        async (): Promise<Message | null> => {
+          try {
+            return await channel.messages.fetch(id);
+          } catch {
+            return null;
+          }
+        },
+        {
+          cached: channel.messages.cache.get(id),
+        },
+      ),
+  };
+}
+
+class FindResult<T> {
+  constructor(private promise: Promise<T | null>) {}
 
   /**
-   * Asserts that the found value is not null or undefined.
-   * Throws an error if the value is null, otherwise returns the value.
+   * Throws an error if the fetched value is null or undefined.
+   * @param message The error message to throw.
+   * @returns The non-null value.
    */
-  async notNull(): Promise<NonNullable<T>> {
-    const value = await this;
+  async orThrow(message?: string): Promise<T> {
+    const value = await this.promise;
     if (value === null || value === undefined) {
-      throw new Error("Finder assertion failed: value is null or undefined.");
+      throw new Error(message || "Finder: Entity not found");
     }
     return value;
   }
 
   /**
-   * Asserts that the found value is null or undefined.
-   * Returns the value if it is null/undefined, otherwise returns null.
+   * Returns a fallback value if the fetched value is null or undefined.
+   * @param fallback The default value to return.
+   * @returns The fetched value or the fallback.
    */
-  async isNull(): Promise<null | undefined> {
-    const value = await this;
-    if (value === null) return null;
-    if (value === undefined) return undefined;
-    return null; // The original promise resolved to a non-nullish value.
+  async or(fallback: T): Promise<T> {
+    const value = await this.promise;
+    return value ?? fallback;
   }
 
-  /**
-   * Asserts the found entity is a TextChannel.
-   * Resolves to the channel if true, or null if it's not a TextChannel.
-   */
-  textChannel(): FinderPromise<TextChannel | null> {
-    return new FinderPromise(async (resolve) => {
-      const value = (await this) as Channel | null;
-      resolve(value instanceof TextChannel ? value : null);
-    });
+  then<R>(
+    onFulfilled?: ((value: T | null) => R | PromiseLike<R>) | null,
+    onRejected?: ((reason: any) => R | PromiseLike<R>) | null,
+  ): Promise<R> {
+    return this.promise.then(onFulfilled, onRejected);
   }
 
-  /**
-   * Asserts the found entity is a VoiceChannel.
-   * Resolves to the channel if true, or null if it's not a VoiceChannel.
-   */
-  voiceChannel(): FinderPromise<VoiceChannel | null> {
-    return new FinderPromise(async (resolve) => {
-      const value = (await this) as Channel | null;
-      resolve(value instanceof VoiceChannel ? value : null);
-    });
-  }
-
-  /**
-   * Asserts the found entity is a CategoryChannel.
-   * Resolves to the channel if true, or null if it's not a CategoryChannel.
-   */
-  categoryChannel(): FinderPromise<CategoryChannel | null> {
-    return new FinderPromise(async (resolve) => {
-      const value = (await this) as Channel | null;
-      resolve(value instanceof CategoryChannel ? value : null);
-    });
-  }
-
-  /**
-   * Asserts the found entity is a NewsChannel.
-   * Resolves to the channel if true, or null if it's not a NewsChannel.
-   */
-  newsChannel(): FinderPromise<NewsChannel | null> {
-    return new FinderPromise(async (resolve) => {
-      const value = (await this) as Channel | null;
-      resolve(value instanceof NewsChannel ? value : null);
-    });
-  }
-
-  /**
-   * Asserts the found entity is a ThreadChannel.
-   * Resolves to the channel if true, or null if it's not a ThreadChannel.
-   */
-  threadChannel(): FinderPromise<ThreadChannel | null> {
-    return new FinderPromise(async (resolve) => {
-      const value = (await this) as Channel | null;
-      resolve(value instanceof ThreadChannel ? value : null);
-    });
+  catch<R>(onRejected?: ((reason: any) => R | PromiseLike<R>) | null): Promise<T | null | R> {
+    return this.promise.catch(onRejected);
   }
 }
 
 /**
- * A wrapper for the result of a synchronous fetch, allowing the use of .notNull().
- */
-class SyncWrapper<T> {
-  public readonly value: T | undefined;
-
-  constructor(value: T | undefined) {
-    this.value = value;
-  }
-
-  /**
-   * Asserts that the synchronously found value is not null or undefined.
-   * Throws an error if the value is null, otherwise returns the value.
-   */
-  notNull(): T {
-    if (this.value === null || this.value === undefined) {
-      throw new Error("Finder assertion failed: value is null or undefined.");
-    }
-    return this.value;
-  }
-}
-
-/**
- * Handles the logic for synchronous (cache-only) lookups.
- */
-class SyncFinderFactory {
-  private client: Client;
-  private id: string;
-
-  constructor(client: Client, id: string) {
-    this.client = client;
-    this.id = id;
-  }
-
-  user(): SyncWrapper<User> {
-    return new SyncWrapper(this.client.users.cache.get(this.id));
-  }
-
-  channel(): SyncWrapper<Channel> {
-    return new SyncWrapper(this.client.channels.cache.get(this.id));
-  }
-
-  guild(): SyncWrapper<Guild> {
-    return new SyncWrapper(this.client.guilds.cache.get(this.id));
-  }
-
-  member(guild: Guild): SyncWrapper<GuildMember> {
-    return new SyncWrapper(guild.members.cache.get(this.id));
-  }
-
-  role(guild: Guild): SyncWrapper<Role> {
-    return new SyncWrapper(guild.roles.cache.get(this.id));
-  }
-}
-
-/**
- * Handles the logic for fetching Discord entities.
- */
-class FinderFactory {
-  private client: Client;
-  private id: string;
-
-  constructor(context: FinderContext, id: string) {
-    this.client = "client" in context ? context.client! : context;
-    this.id = id;
-  }
-
-  /**
-   * Accesses synchronous cache-only methods.
-   */
-  sync(): SyncFinderFactory {
-    return new SyncFinderFactory(this.client, this.id);
-  }
-
-  /**
-   * Finds a user by ID.
-   */
-  user(): FinderPromise<User | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const user = await this.client.users.fetch(this.id);
-        resolve(user);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-
-  /**
-   * Finds any channel by ID from the client's cache or API.
-   */
-  channel(): FinderPromise<Channel | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const channel = await this.client.channels.fetch(this.id);
-        resolve(channel);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-
-  /**
-   * Finds a guild (server) by ID.
-   */
-  guild(): FinderPromise<Guild | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const guild = await this.client.guilds.fetch(this.id);
-        resolve(guild);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-
-  /**
-   * Finds a specific message within a given channel.
-   */
-  message(channel: TextChannel | NewsChannel | ThreadChannel): FinderPromise<Message | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const message = await channel.messages.fetch(this.id);
-        resolve(message);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-
-  /**
-   * Finds a guild member by ID. Requires a guild context.
-   */
-  member(guild: Guild): FinderPromise<GuildMember | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const member = await guild.members.fetch(this.id);
-        resolve(member);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-
-  /**
-   * Finds a role by ID. Requires a guild context.
-   */
-  role(guild: Guild): FinderPromise<Role | null> {
-    return new FinderPromise(async (resolve) => {
-      try {
-        const role = await guild.roles.fetch(this.id);
-        resolve(role);
-      } catch {
-        resolve(null);
-      }
-    });
-  }
-}
-
-/**
- * A utility for finding Discord entities by ID with a fluent, chainable API.
+ * An enhanced version of the finder that supports assertion methods like `.orThrow()` and `.or()`.
  *
- * @param context The command context (interaction/message) or a Client instance.
+ * @param context The command context or a Client instance.
  * @param id The ID of the entity to find.
- * @returns A FinderFactory instance to chain search methods from.
+ * @returns An object with methods that return a `FindResult` instance.
  *
  * @example
- * // Async with assertion
- * const user = await Finder(interaction, userId).user().notNull();
+ * // Fetch with an assertion, throwing an error if not found
+ * const user = await findOr(ctx, userId).user().orThrow("User not found");
  *
- * // Sync with assertion
- * const cachedMember = Finder(interaction, memberId).sync().member(interaction.guild).notNull();
- *
- * // Sync without assertion
- * const maybeRole = Finder(interaction, roleId).sync().role(interaction.guild).value;
+ * @example
+ * // Fetch with a fallback value
+ * const role = await findOr(ctx, roleId).role(guild).or(defaultRole);
  */
-export function Finder(context: FinderContext, id: string) {
-  return new FinderFactory(context, id);
+export function findOr(context: FinderContext, id: string) {
+  const baseFinder = find(context, id);
+  return {
+    user: () => new FindResult(baseFinder.user()),
+    channel: function <T extends ChannelTypes>(type?: T) {
+      return new FindResult(baseFinder.channel(type as any));
+    } as {
+      <T extends ChannelTypes>(type: T): FindResult<TypedChannel<T> | null>;
+      (): FindResult<Channel | null>;
+    },
+    guild: () => new FindResult(baseFinder.guild()),
+    member: (guild: Guild) => new FindResult(baseFinder.member(guild)()),
+    role: (guild: Guild) => new FindResult(baseFinder.role(guild)()),
+    message: (channel: TextChannel | NewsChannel | ThreadChannel) =>
+      new FindResult(baseFinder.message(channel)()),
+  };
+}
+
+/**
+ * Fetches multiple entities in parallel.
+ *
+ * @param context The command context or a Client instance.
+ * @param ids An array of IDs to find.
+ * @returns An object with methods to fetch multiple entities.
+ *
+ * @example
+ * // Fetch multiple users by their IDs
+ * const results = await findMany(ctx, [id1, id2, id3]).users();
+ * // Returns: (User | null)[]
+ *
+ * @example
+ * // Fetch multiple members and filter out any that were not found
+ * const members = filterNulls(await findMany(ctx, userIds).members(guild));
+ * // Returns: GuildMember[]
+ */
+export function findMany(context: FinderContext, ids: string[]) {
+  return {
+    users: async (): Promise<(User | null)[]> => {
+      return Promise.all(ids.map((id) => find(context, id).user()));
+    },
+    channels: (async (type?: ChannelTypes): Promise<(Channel | null)[]> => {
+      return Promise.all(ids.map((id) => find(context, id).channel(type as any)));
+    }) as {
+      <T extends ChannelTypes>(type: T): Promise<(TypedChannel<T> | null)[]>;
+      (): Promise<(Channel | null)[]>;
+    },
+    guilds: async (): Promise<(Guild | null)[]> => {
+      return Promise.all(ids.map((id) => find(context, id).guild()));
+    },
+    members: async (guild: Guild): Promise<(GuildMember | null)[]> => {
+      return Promise.all(ids.map((id) => find(context, id).member(guild)()));
+    },
+    roles: async (guild: Guild): Promise<(Role | null)[]> => {
+      return Promise.all(ids.map((id) => find(context, id).role(guild)()));
+    },
+  };
+}
+
+/**
+ * A type guard utility to filter out null and undefined values from an array.
+ *
+ * @param array The array to filter.
+ * @returns A new array with all nullish values removed.
+ *
+ * @example
+ * const users = filterNulls(await findMany(ctx, ids).users());
+ * // Type is now User[] instead of (User | null)[]
+ */
+export function filterNulls<T>(array: (T | null | undefined)[]): T[] {
+  return array.filter((item): item is T => item != null);
 }

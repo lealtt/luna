@@ -1,4 +1,4 @@
-import { Schema, Model, type UpdateWriteOpResult } from "mongoose";
+import { Schema, Model, type Document, type UpdateWriteOpResult } from "mongoose";
 import {
   Locale,
   userMention,
@@ -7,12 +7,11 @@ import {
   type GuildMember,
   type User,
 } from "discord.js";
-import { Finder } from "#utils";
-
+import { find, logger } from "#utils";
 export interface IUser extends Document {
   userId: string;
   about: string | null;
-  locale: Locale | null;
+  locale: string | null;
   createdAt: Date;
   updatedAt: Date;
   fetchUser(client: Client): Promise<User | null>;
@@ -24,9 +23,11 @@ export interface IUserModel extends Model<IUser> {
   findOrCreate(userId: string): Promise<IUser>;
   updateProfile(
     userId: string,
-    data: { about?: string | null; locale?: Locale | null },
+    data: { about?: string | null; locale?: string | null },
   ): Promise<UpdateWriteOpResult>;
 }
+
+const validLocales = Object.values(Locale);
 
 export const userSchema = new Schema<IUser, IUserModel>(
   {
@@ -43,6 +44,11 @@ export const userSchema = new Schema<IUser, IUserModel>(
     locale: {
       type: String,
       default: null,
+      validate: {
+        validator: (value: string | null) =>
+          value === null || validLocales.includes(value as Locale),
+        message: (props) => `${props.value} is not a valid Discord locale`,
+      },
     },
   },
   {
@@ -52,13 +58,16 @@ export const userSchema = new Schema<IUser, IUserModel>(
 
     statics: {
       async findOrCreate(this: Model<IUser>, userId: string): Promise<IUser> {
-        const user = await this.findOne({ userId });
-        return user ?? (await this.create({ userId }));
+        return this.findOneAndUpdate(
+          { userId },
+          { $setOnInsert: { userId } },
+          { upsert: true, new: true },
+        );
       },
-      updateProfile(
+      async updateProfile(
         this: Model<IUser>,
         userId: string,
-        data: { about?: string | null; locale?: Locale | null },
+        data: { about?: string | null; locale?: string | null },
       ): Promise<UpdateWriteOpResult> {
         return this.updateOne({ userId }, { $set: data });
       },
@@ -66,10 +75,20 @@ export const userSchema = new Schema<IUser, IUserModel>(
 
     methods: {
       async fetchUser(this: IUser, client: Client): Promise<User | null> {
-        return Finder(client, this.userId).user();
+        try {
+          return await find(client, this.userId).user();
+        } catch (error) {
+          logger.error(`Failed to fetch user ${this.userId}:`, error);
+          return null;
+        }
       },
       async fetchMember(this: IUser, guild: Guild): Promise<GuildMember | null> {
-        return Finder(guild.client, this.userId).member(guild);
+        try {
+          return await find(guild.client, this.userId).member(guild)();
+        } catch (error) {
+          logger.error(`Failed to fetch member ${this.userId} in guild ${guild.id}:`, error);
+          return null;
+        }
       },
     },
   },

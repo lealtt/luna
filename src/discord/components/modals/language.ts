@@ -1,7 +1,6 @@
 import { createComponent, ComponentInteractionType } from "#discord/modules";
 import { models } from "#database";
 import { extractModalValues, t } from "#utils";
-import { Locale } from "discord.js";
 
 createComponent({
   customId: "language/set/{userId}",
@@ -14,12 +13,12 @@ createComponent({
       language: ["language-select", "strings"],
     });
 
-    const selectedLocale = language[0] as Locale;
+    const [locale] = language;
 
-    await models.users.updateProfile(userId, { locale: selectedLocale });
+    await models.users.updateProfile(userId, { locale });
 
     await interaction.editReply({
-      content: t(selectedLocale, "language.success_message"),
+      content: t(locale, "language.success_message"),
     });
   },
 });
