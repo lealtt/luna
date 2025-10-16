@@ -99,8 +99,6 @@ pnpm start
 | 🔒 **Interaction State Handler**     | Type-safe in-memory state management powered by Zod.                                                                              |
 | 💬 **Multi-Command Type Support**    | Unified handling for Slash, Prefix, and Context Menu (User & Message) commands.                                                   |
 | 🚩 **Flag Parsing with Zod**         | Validate and parse named arguments for prefix commands with full type safety.                                                     |
-| ⏳ **Integrated Cooldown System**    | Built-in cooldowns for both prefix and interaction commands with localized feedback.                                              |
-
 ---
 
 ## 🛠️ Command-Line Interface (CLI)
