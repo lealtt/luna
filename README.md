@@ -34,6 +34,7 @@ pnpm install
 
 ```env
 BOT_TOKEN=your_token_here
+CLIENT_ID=discord_client_id
 MONGO_URI=your_mongo_uri
 ```
 
