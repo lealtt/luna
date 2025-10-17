@@ -13,8 +13,8 @@ statusQueue.enqueue({ name: "Requests", type: ActivityType.Listening });
 statusQueue.enqueue({ name: "Minecraft", type: ActivityType.Playing });
 
 createTask({
-  name: "Update Status",
-  interval: Timer(15).sec(),
+  name: "update-status",
+  interval: Timer(5).min(),
   runImmediately: true,
   run(client) {
     // 1. Dequeue the next status from the front of the queue.

@@ -22,7 +22,6 @@
     "generic": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo más tarde.",
     "invalid_args": "**¡Argumentos inválidos!** Por favor, revisa tu entrada.\n{{errors}}",
     "guild_only": "Este comando solo se puede usar en un servidor.",
-    "missing_permissions": "Te faltan los permisos necesarios para este comando: `{{permissions}}`",
     "component_unauthorized": "¡Esto no es para ti o ha expirado!",
     "optional_flags_title": "Opciones Opcionales:",
     "member_not_found": "No se pudo encontrar al miembro especificado en este servidor.",

@@ -11,7 +11,8 @@
     "build": "tsup",
     "start": "node --env-file .env dist/index.js",
     "lint": "prettier . --write",
-    "cli": "tsx --env-file .env cli/index.ts"
+    "cli": "tsx --env-file .env cli/index.ts",
+    "test": "tsx --env-file .env --test __tests__/**/*.test.ts"
   },
   "license": "MIT",
   "packageManager": "pnpm@10.18.0",
@@ -19,6 +20,7 @@
     "chalk": "^5.6.2",
     "discord.js": "^14.23.2",
     "glob": "^11.0.3",
+    "minimatch": "^10.0.3",
     "mongoose": "^8.19.1",
     "node-cron": "^4.2.1",
     "zod": "^4.1.12"
@@ -26,7 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^9.37.0",
     "@types/adm-zip": "^0.5.7",
-    "@types/node": "^24.7.0",
+    "@types/node": "^24.8.1",
     "@types/node-cron": "^3.0.11",
     "adm-zip": "^0.5.16",
     "commander": "^14.0.1",
@@ -36,14 +38,15 @@
     "tsup": "^8.5.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.46.0"
+    "typescript-eslint": "^8.46.1"
   },
   "imports": {
     "#states": "./dist/discord/states/index.js",
-    "#discord/bootstrap": "./dist/discord/base/bootstrap.js",
+    "#discord/bootstrap": "./dist/discord/base/bootstrap/bootstrap.js",
     "#discord/modules": "./dist/discord/base/modules/index.js",
     "#discord/middlewares": "./dist/discord/middlewares/index.js",
     "#discord/structures": "./dist/discord/base/structures/index.js",
+    "#discord/hooks": "./dist/discord/base/hooks/index.js",
     "#discord/security": "./dist/discord/base/security/index.js",
     "#discord/builders": "./dist/discord/base/builders/index.js",
     "#discord/functions": [

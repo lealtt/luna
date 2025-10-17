@@ -7,6 +7,7 @@ import {
   type AnyComponent,
   type AnyInteraction,
 } from "./component.types.js";
+import { emitBotEvent } from "#discord/hooks";
 
 function matchCustomIdPattern(pattern: string, customId: string): Record<string, string> | null {
   const patternParts = pattern.split("/");
@@ -107,10 +108,10 @@ export async function handleComponentInteraction(
     return;
   }
 
-  if (handler.type !== interactionType || !rawParams) {
+  if (handler.type !== interactionType) {
     if (!interaction.replied && !interaction.deferred) {
       logger.error(
-        `Handler found for "${staticKey}" but it did not match the full custom ID or interaction type.`,
+        `Handler type mismatch for "${handler.customId}". Expected ${ComponentInteractionType[interactionType]}, got ${ComponentInteractionType[handler.type]}.`,
       );
       await interaction.reply({
         content: t(interaction.locale, "common_errors.no_handler"),
@@ -119,11 +120,43 @@ export async function handleComponentInteraction(
     }
     return;
   }
+  if (!rawParams) {
+    if (!interaction.replied && !interaction.deferred) {
+      logger.error(
+        `Internal error: Params became null unexpectedly for custom ID: ${interaction.customId}`,
+      );
+      await interaction.reply({
+        content: t(interaction.locale, "common_errors.generic"),
+        flags: [MessageFlags.Ephemeral],
+      });
+    }
+    return;
+  }
 
   try {
     const validatedParams = validateParams(rawParams, handler.paramsSchema);
+
+    await emitBotEvent("component:beforeExecute" as any, interaction.client, {
+      handler,
+      interaction,
+      params: validatedParams,
+    });
+
     await handler.run(interaction as AnyInteraction, validatedParams);
+
+    await emitBotEvent("component:afterExecute" as any, interaction.client, {
+      handler,
+      interaction,
+      params: validatedParams,
+    });
   } catch (error) {
+    await emitBotEvent("component:errer" as any, interaction.client, {
+      handler,
+      interaction,
+      params: rawParams,
+      error,
+    });
+
     if (!interaction.replied && !interaction.deferred) {
       if (error instanceof ZodError) {
         logger.error(`Zod validation error for "${handler.customId}":`, error.flatten());

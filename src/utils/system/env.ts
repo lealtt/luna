@@ -10,7 +10,6 @@ export const envSchema = z.object({
   CLIENT_ID: z.string({ error: "BOT_TOKEN is required" }),
   MONGO_URI: z.string({ error: "MONGO_URI is required" }),
   MONGO_CERTIFICATE_PATH: z.string().optional(),
-  LOG_CHANNEL_ID: z.string().optional(),
   BOT_PREFIX: z
     .string()
     .transform((val) => val.split(",").map((prefix) => prefix.trim()))

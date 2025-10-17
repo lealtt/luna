@@ -2,20 +2,41 @@ import type { Client, ClientEvents } from "discord.js";
 import { logger } from "#utils";
 import cron, { type ScheduledTask } from "node-cron";
 import { taskRegistry } from "#discord/modules";
+import { emitBotEvent } from "#discord/hooks";
 
 const intervalIds = new Map<string, NodeJS.Timeout>();
 const cronTasks = new Map<string, ScheduledTask>();
 const maxCtronTasks = 100;
 
-async function runIntervalTask(client: Client, taskName: string) {
+async function runTaskLogic(client: Client, taskName: string) {
   const task = taskRegistry.store.get(taskName);
-  if (!task || !task.interval) return;
+  if (!task) {
+    logger.warn(`Task "${taskName}" was requested to run but not found in registry.`);
+    return;
+  }
 
   try {
+    await emitBotEvent("task:beforeRun", client, { task });
+
     await task.run(client);
+
+    await emitBotEvent("task:afterRun", client, { task });
   } catch (error) {
+    await emitBotEvent("task:error", client, { task, error });
     logger.error(`Error executing task "${task.name}":`, error);
   }
+}
+
+async function runIntervalTaskWrapper(client: Client, taskName: string) {
+  const task = taskRegistry.store.get(taskName);
+  if (!task || !task.interval) return;
+  await runTaskLogic(client, taskName);
+}
+
+async function runCronTaskWrapper(client: Client, taskName: string) {
+  const task = taskRegistry.store.get(taskName);
+  if (!task || !task.cron) return;
+  await runTaskLogic(client, taskName);
 }
 
 export function startTaskRunner(client: Client): void {
@@ -31,27 +52,24 @@ export function startTaskRunner(client: Client): void {
         logger.error(`Invalid cron pattern "${task.cron}" for task "${task.name}".`);
         continue;
       }
-      // Warn about high-frequency cron patterns
       if (task.cron.includes("* * * * * *")) {
         logger.warn(
           `High-frequency cron pattern detected for task "${task.name}". Consider using interval instead.`,
         );
       }
-      const scheduledTask = cron.schedule(task.cron, async () => {
-        try {
-          await task.run(client);
-        } catch (error) {
-          logger.error(`Error executing task "${task.name}":`, error);
-        }
+      const scheduledTask = cron.schedule(task.cron, () => {
+        runCronTaskWrapper(client, task.name);
       });
       cronTasks.set(task.name, scheduledTask);
     } else if (task.interval) {
-      const intervalId = setInterval(() => runIntervalTask(client, task.name), task.interval);
+      const intervalId = setInterval(() => {
+        runIntervalTaskWrapper(client, task.name);
+      }, task.interval);
       intervalIds.set(task.name, intervalId);
     }
 
     if (task.runImmediately) {
-      Promise.resolve(task.run(client)).catch((error) =>
+      runTaskLogic(client, task.name).catch((error) =>
         logger.error(`Error on immediate run of task "${task.name}":`, error),
       );
     }

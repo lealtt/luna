@@ -14,10 +14,11 @@
     "baseUrl": "./src",
     "paths": {
       "#states": ["discord/states/index.ts"],
-      "#discord/bootstrap": ["discord/base/bootstrap.ts"],
+      "#discord/bootstrap": ["discord/base/bootstrap/bootstrap.ts"],
       "#discord/modules": ["discord/base/modules/index.ts"],
       "#discord/middlewares": ["discord/middlewares/index.ts"],
       "#discord/structures": ["discord/base/structures/index.ts"],
+      "#discord/hooks": ["discord/base/hooks/index.ts"],
       "#discord/security": ["discord/base/security/index.ts"],
       "#discord/builders": ["discord/base/builders/index.ts"],
       "#discord/functions": ["discord/functions/index.ts"],

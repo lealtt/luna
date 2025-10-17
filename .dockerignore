@@ -8,6 +8,8 @@ node_modules
 
 # Source & configs
 src
+cli
+__tests__
 tsconfig.json
 tsup.config.ts
 .env.example
@@ -37,3 +39,4 @@ README.md
 LICENSE
 Dockerfile
 docker-compose.yml
+docs

@@ -9,6 +9,7 @@ import { runMiddlewareChain } from "../shared/middleware.module.js";
 import { logger, t } from "#utils";
 import type { AnyApplicationCommandInteraction } from "./command.types.js";
 import { rateLimitMiddleware } from "#discord/security";
+import { emitBotEvent } from "#discord/hooks";
 
 type AnyAutocompleteHandler = (
   interaction: AutocompleteInteraction<CacheType>,
@@ -73,8 +74,24 @@ export async function handleApplicationCommand(
 
     const executeCommand = () => command.run(interaction);
 
+    await emitBotEvent("command:beforeExecute", client, {
+      command,
+      interaction,
+    });
+
     await runMiddlewareChain(interaction, allMiddlewares, executeCommand);
+
+    await emitBotEvent("command:afterExecute", client, {
+      command,
+      interaction,
+    });
   } catch (error) {
+    await emitBotEvent("command:error", client, {
+      command,
+      interaction,
+      error,
+    });
+
     logger.error(`Error executing command "${command.name}":`, error);
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp({

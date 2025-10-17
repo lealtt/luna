@@ -9,8 +9,9 @@ import {
 } from "./paginator.module.js";
 import { ComponentInteractionType } from "../components/component.types.js";
 import { createComponent } from "../components/component.module.js";
+import { emitBotEvent } from "#discord/hooks";
+import { logger } from "#utils";
 
-// Button handler
 createComponent({
   customId: "paginator/button/{paginatorId}/{direction}/{stateId}",
   type: ComponentInteractionType.Button,
@@ -27,61 +28,97 @@ createComponent({
       });
     }
 
-    // Update last interaction time
-    state.lastInteraction = Date.now();
+    try {
+      await emitBotEvent("paginator:button:beforeExecute", interaction.client, {
+        paginatorId,
+        direction,
+        stateId,
+        state,
+        interaction,
+      });
 
-    const { items, itemsPerPage, style, menuItems, emojis, showPageIndicator } = state;
-    const totalPages = Math.ceil(items.length / itemsPerPage);
-    let newPage = state.currentPage;
+      state.lastInteraction = Date.now();
 
-    switch (direction) {
-      case "first":
-        newPage = 0;
-        break;
-      case "prev":
-        newPage = Math.max(0, state.currentPage - 1);
-        break;
-      case "home":
-        newPage = 0;
-        break;
-      case "next":
-        newPage = Math.min(totalPages - 1, state.currentPage + 1);
-        break;
-      case "last":
-        newPage = totalPages - 1;
-        break;
+      const { items, itemsPerPage, style, menuItems, emojis, showPageIndicator } = state;
+      const totalPages = Math.ceil(items.length / itemsPerPage);
+      let newPage = state.currentPage;
+
+      switch (direction) {
+        case "first":
+          newPage = 0;
+          break;
+        case "prev":
+          newPage = Math.max(0, state.currentPage - 1);
+          break;
+        case "home":
+          newPage = 0;
+          break;
+        case "next":
+          newPage = Math.min(totalPages - 1, state.currentPage + 1);
+          break;
+        case "last":
+          newPage = totalPages - 1;
+          break;
+      }
+
+      if (newPage === state.currentPage) {
+        return interaction.deferUpdate();
+      }
+
+      const pageItems = items.slice(newPage * itemsPerPage, (newPage + 1) * itemsPerPage);
+      const embed = formatPage(pageItems, newPage + 1, totalPages);
+
+      const components = [];
+
+      if ((style === "menu" || style === "both") && menuItems && menuItems.length > 0) {
+        components.push(
+          createPaginatorMenu(paginatorId, stateId, menuItems, state.selectedMenuValue),
+        );
+      }
+
+      if (style === "buttons" || style === "both") {
+        components.push(createPaginatorButtons(paginatorId, stateId, newPage, totalPages, emojis));
+      }
+
+      if (showPageIndicator) {
+        components.push(createPageIndicatorButton(newPage, totalPages));
+      }
+
+      paginatorState.update(stateId, { ...state, currentPage: newPage });
+      await interaction.update({ embeds: [embed], components });
+
+      await emitBotEvent("paginator:button:afterExecute", interaction.client, {
+        paginatorId,
+        direction,
+        stateId,
+        newState: paginatorState.get(stateId),
+        interaction,
+      });
+    } catch (error) {
+      await emitBotEvent("paginator:button:error", interaction.client, {
+        paginatorId,
+        direction,
+        stateId,
+        state,
+        interaction,
+        error,
+      });
+      logger.error(`Error in paginator button handler (${paginatorId}):`, error);
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: t(interaction.locale, "common_errors.generic"),
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        await interaction.followUp({
+          content: t(interaction.locale, "common_errors.generic"),
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
-
-    if (newPage === state.currentPage) {
-      return interaction.deferUpdate();
-    }
-
-    const pageItems = items.slice(newPage * itemsPerPage, (newPage + 1) * itemsPerPage);
-    const embed = formatPage(pageItems, newPage + 1, totalPages);
-
-    const components = [];
-
-    // Rebuild components based on style
-    if ((style === "menu" || style === "both") && menuItems && menuItems.length > 0) {
-      components.push(
-        createPaginatorMenu(paginatorId, stateId, menuItems, state.selectedMenuValue),
-      );
-    }
-
-    if (style === "buttons" || style === "both") {
-      components.push(createPaginatorButtons(paginatorId, stateId, newPage, totalPages, emojis));
-    }
-
-    if (showPageIndicator) {
-      components.push(createPageIndicatorButton(newPage, totalPages));
-    }
-
-    paginatorState.update(stateId, { ...state, currentPage: newPage });
-    await interaction.update({ embeds: [embed], components });
   },
 });
 
-// Menu handler
 createComponent({
   customId: "paginator/menu/{paginatorId}/{stateId}",
   type: ComponentInteractionType.StringSelect,
@@ -98,47 +135,84 @@ createComponent({
       });
     }
 
-    // Update last interaction time
-    state.lastInteraction = Date.now();
+    try {
+      const selectedValue = interaction.values[0];
 
-    const selectedValue = interaction.values[0];
-    const { menuItems, itemsPerPage, style, emojis, showPageIndicator } = state;
+      await emitBotEvent("paginator:menu:beforeExecute", interaction.client, {
+        paginatorId,
+        selectedValue,
+        stateId,
+        state,
+        interaction,
+      });
 
-    if (!menuItems) return;
+      state.lastInteraction = Date.now();
 
-    // Find selected menu item
-    const selectedMenuItem = menuItems.find(
-      (item, index) => (item.value || `option_${index}`) === selectedValue,
-    );
+      const { menuItems, itemsPerPage, style, emojis, showPageIndicator } = state;
 
-    if (!selectedMenuItem) return;
+      if (!menuItems) return;
 
-    // Update items and reset to first page
-    const newItems = selectedMenuItem.items;
-    const totalPages = Math.ceil(newItems.length / itemsPerPage);
-    const pageItems = newItems.slice(0, itemsPerPage);
-    const embed = formatPage(pageItems, 1, totalPages);
+      const selectedMenuItem = menuItems.find(
+        (item, index) => (item.value || `option_${index}`) === selectedValue,
+      );
 
-    const components = [];
+      if (!selectedMenuItem) return;
 
-    // Rebuild components
-    components.push(createPaginatorMenu(paginatorId, stateId, menuItems, selectedValue));
+      const newItems = selectedMenuItem.items;
+      const totalPages = Math.ceil(newItems.length / itemsPerPage);
+      const pageItems = newItems.slice(0, itemsPerPage);
+      const embed = formatPage(pageItems, 1, totalPages);
 
-    if (style === "buttons" || style === "both") {
-      components.push(createPaginatorButtons(paginatorId, stateId, 0, totalPages, emojis));
+      const components = [];
+
+      components.push(createPaginatorMenu(paginatorId, stateId, menuItems, selectedValue));
+
+      if (style === "buttons" || style === "both") {
+        components.push(createPaginatorButtons(paginatorId, stateId, 0, totalPages, emojis));
+      }
+
+      if (showPageIndicator) {
+        components.push(createPageIndicatorButton(0, totalPages));
+      }
+
+      const updatedStateData = {
+        ...state,
+        items: newItems,
+        currentPage: 0,
+        selectedMenuValue: selectedValue,
+      };
+
+      paginatorState.update(stateId, updatedStateData);
+
+      await interaction.update({ embeds: [embed], components });
+
+      await emitBotEvent("paginator:menu:afterExecute", interaction.client, {
+        paginatorId,
+        selectedValue,
+        stateId,
+        newState: updatedStateData,
+        interaction,
+      });
+    } catch (error) {
+      await emitBotEvent("paginator:menu:error", interaction.client, {
+        paginatorId,
+        stateId,
+        state,
+        interaction,
+        error,
+      });
+      logger.error(`Error in paginator menu handler (${paginatorId}):`, error);
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({
+          content: t(interaction.locale, "common_errors.generic"),
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        await interaction.followUp({
+          content: t(interaction.locale, "common_errors.generic"),
+          flags: MessageFlags.Ephemeral,
+        });
+      }
     }
-
-    if (showPageIndicator) {
-      components.push(createPageIndicatorButton(0, totalPages));
-    }
-
-    paginatorState.update(stateId, {
-      ...state,
-      items: newItems,
-      currentPage: 0,
-      selectedMenuValue: selectedValue,
-    });
-
-    await interaction.update({ embeds: [embed], components });
   },
 });

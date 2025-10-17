@@ -2,6 +2,8 @@ import type { Client, ClientEvents } from "discord.js";
 import { Registry } from "#discord/structures";
 import { NameValidator, RunFunctionValidator } from "../shared/validators.js";
 import type { AnyEvent, Event } from "./events.types.js";
+import { emitBotEvent } from "#discord/hooks";
+import { logger } from "#utils";
 
 class EventRegistry extends Registry<AnyEvent> {
   private static instance: EventRegistry;
@@ -41,7 +43,19 @@ export function createEvent<K extends keyof ClientEvents>(options: Event<K>) {
 
 export function registerClientEvents(client: Client): void {
   for (const event of eventRegistry.store.values()) {
-    const handler = (...args: unknown[]) => event.run(...args);
+    const handler = async (...args: unknown[]) => {
+      try {
+        await emitBotEvent(`event:${event.name}:beforeExecute`, client, { event, args });
+
+        await event.run(...args);
+
+        await emitBotEvent(`event:${event.name}:afterExecute`, client, { event, args });
+      } catch (error) {
+        await emitBotEvent(`event:${event.name}:error`, client, { event, args, error });
+        logger.error(`Error executing event handler for "${event.name}":`, error);
+      }
+    };
+
     if (event.once) {
       client.once(event.name, handler);
     } else {

@@ -4,6 +4,7 @@ import { ZodError, type ZodObject } from "zod";
 import { parseFlags, prefixCommandRegistry } from "./prefix.module.js";
 import { runMiddlewareChain } from "../shared/middleware.module.js";
 import { rateLimitMiddleware } from "#discord/security";
+import { emitBotEvent } from "#discord/hooks";
 
 function formatZodError(error: ZodError, schema: ZodObject<any>): string {
   const errorMessages = error.issues.map((e) => `> • **${e.path.join(".")}**: ${e.message}`);
@@ -42,6 +43,8 @@ export async function handlePrefixCommand(message: Message): Promise<void> {
     return;
   }
 
+  let executionArgs: any;
+
   try {
     const allMiddlewares = [rateLimitMiddleware, ...(command.middlewares ?? [])];
 
@@ -49,15 +52,34 @@ export async function handlePrefixCommand(message: Message): Promise<void> {
       if (command.flags) {
         const rawArgs = content.slice(commandName.length).trim();
         const parsedFlags = parseFlags(rawArgs, command.flags);
+        executionArgs = parsedFlags;
         await command.run(message, parsedFlags);
       } else {
         const args = content.split(/ +/).slice(1);
+        executionArgs = args;
         await command.run(message, args);
       }
     };
 
+    await emitBotEvent("prefixCommand:beforeExecute", message.client, {
+      command,
+      message,
+    });
+
     await runMiddlewareChain(message, allMiddlewares, finalHandler);
+
+    await emitBotEvent("prefixCommand:afterExecute", message.client, {
+      command,
+      message,
+      args: executionArgs,
+    });
   } catch (error) {
+    await emitBotEvent("prefixCommand:error", message.client, {
+      command,
+      message,
+      error,
+    });
+
     if (error instanceof ZodError && command?.flags?.schema) {
       const fullErrorMessage = formatZodError(error, command.flags.schema as ZodObject<any>);
       await message.reply({
