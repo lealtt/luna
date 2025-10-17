@@ -15,7 +15,7 @@ createCommand({
   name: "help",
   async run(interaction) {
     await interaction.reply({
-      ephemeral: true,
+      flags: "Ephemeral",
       ...createPaginator({
         paginatorId: "help",
         items: utilityCommands,
