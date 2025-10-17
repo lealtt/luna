@@ -58,6 +58,26 @@ export class StateManager<T = any> {
     return id;
   }
 
+  public setWithId(id: string, data: T, ttl?: number): void {
+    const expiresAt = Date.now() + (ttl ?? this.options.defaultTTL);
+
+    // Evict if we're adding a new key and storage is full
+    if (!this.store.has(id) && this.store.size >= this.options.maxSize) {
+      this.evictLRU();
+    }
+
+    const entry = this.store.get(id);
+
+    this.store.set(id, {
+      data,
+      expiresAt,
+      lastAccessed: Date.now(),
+      accessCount: entry ? entry.accessCount : 0, // Preserve access count if updating
+    });
+
+    this.checkSizeWarning();
+  }
+
   public get(id: string): T | undefined {
     const entry = this.store.get(id);
 

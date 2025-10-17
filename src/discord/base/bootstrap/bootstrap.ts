@@ -15,6 +15,7 @@ import { paginatorState } from "../modules/paginator/paginator.state.js";
 import { type BootstrapOptions } from "./bootstrap.types.js";
 import { validateOptions } from "./bootstrap.helpers.js";
 import { loadAllModules } from "./bootstrap.loader.js";
+import { localeState } from "../modules/locale/locale.state.js";
 
 export async function lunaBootstrap(options: BootstrapOptions): Promise<void> {
   let client: Client | undefined;
@@ -80,6 +81,7 @@ async function shutdown(client?: Client): Promise<void> {
   }
 
   paginatorState.destroy();
+  localeState.destroy();
   hookRegistry.clearAll();
 
   if (client?.isReady()) {

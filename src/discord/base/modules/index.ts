@@ -24,3 +24,5 @@ export * from "./paginator/paginator.handler.js";
 
 export * from "./shared/middleware.module.js";
 export * from "./shared/validators.js";
+
+export * from "./locale/locale.service.js";
