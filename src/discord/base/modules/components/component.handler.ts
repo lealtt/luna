@@ -150,7 +150,7 @@ export async function handleComponentInteraction(
       params: validatedParams,
     });
   } catch (error) {
-    await emitBotEvent("component:errer" as any, interaction.client, {
+    await emitBotEvent("component:error" as any, interaction.client, {
       handler,
       interaction,
       params: rawParams,

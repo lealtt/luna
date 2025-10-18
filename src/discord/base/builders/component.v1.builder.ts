@@ -16,7 +16,7 @@ import {
   TextDisplayBuilder,
 } from "discord.js";
 import { createLabel, type CreateLabelOptions } from "./component.v2.builder.js";
-import { logger, t, type I18nKey } from "#utils";
+import { defaultLocale, logger, t, type I18nKey } from "#utils";
 
 /**
  * A union of all component builders that can be placed inside an ActionRow in a message.
@@ -153,7 +153,7 @@ export function createRow<T extends MessageActionRowComponentBuilders>(
  * @returns A ButtonBuilder instance.
  */
 export function createButton(options: CreateButtonOptions): ButtonBuilder {
-  const { locale = "en-US" } = options;
+  const { locale = defaultLocale } = options;
 
   if (!options.label && !options.labelI18nKey && !options.emoji) {
     logger.error("createButton: A button must have at least a label or an emoji.");
@@ -197,7 +197,7 @@ export function createButton(options: CreateButtonOptions): ButtonBuilder {
 export function createStringSelectMenu(
   options: CreateSelectMenuOptions & { options: StringSelectMenuOptionResolvable[] },
 ): StringSelectMenuBuilder {
-  const { locale = "en-US" } = options;
+  const { locale = defaultLocale } = options;
 
   if (!options.customId) {
     logger.error("createStringSelectMenu: Custom ID is required.");
@@ -269,7 +269,7 @@ function createGenericSelectMenu<T extends GenericSelectMenuBuilder>(
   Builder: new () => T,
   options: CreateSelectMenuOptions,
 ): T {
-  const { locale = "en-US" } = options;
+  const { locale = defaultLocale } = options;
   if (!options.customId) {
     logger.error("createGenericSelectMenu: Custom ID is required.");
     throw new Error("SelectMenu requires a custom ID.");
@@ -343,7 +343,7 @@ export function createMentionableSelectMenu(
  * @returns A LabelBuilder instance containing the configured text input.
  */
 export function createTextInput(options: CreateLabeledTextInputOptions): LabelBuilder {
-  const { locale = "en-US", label, labelI18nKey, ...rest } = options;
+  const { locale = defaultLocale, label, labelI18nKey, ...rest } = options;
 
   const textInputData = {
     ...rest,
@@ -375,7 +375,7 @@ export function createTextInput(options: CreateLabeledTextInputOptions): LabelBu
  * @returns A ModalBuilder instance.
  */
 export function createModal(options: CreateModalOptions): ModalBuilder {
-  const { locale = "en-US" } = options;
+  const { locale = defaultLocale } = options;
 
   if (!options.customId) {
     logger.error("createModal: Custom ID is required.");

@@ -37,6 +37,13 @@ export type TranslationVariables = Record<string, string | number>;
 // Global resources object
 const resources: Record<string, Record<string, any>> = {};
 
+/**
+ * Stores the default locale configured during bootstrap.
+ * Initialized to EnglishUS, but updated by `setupI18n`.
+ * @see setupI18n
+ */
+export let defaultLocale: Locale = Locale.EnglishUS;
+
 async function loadJsonFile(filePath: string): Promise<Record<string, any> | undefined> {
   try {
     const content = await fs.readFile(filePath, "utf-8");
@@ -55,6 +62,8 @@ export async function setupI18n(
   fallbackLng: Locale = Locale.EnglishUS,
   ...otherSupportedLngs: Locale[]
 ) {
+  defaultLocale = fallbackLng;
+
   const supportedLngs = [...new Set([fallbackLng, ...otherSupportedLngs])];
   const localesDir = path.resolve(process.cwd(), "locales");
 
@@ -81,16 +90,17 @@ function getNestedValue(obj: Record<string, any>, key: string): string | undefin
 
 /**
  * Gets a translated string for a given key and interpolates variables.
- * @param lng The language to use (e.g., "en-US" or Locale.EnglishUS).
- * @param key The translation key (e.g., "ping.reply").
+ * @param lng The language to use ("en-US" or Locale.EnglishUS).
+ * @param key The translation key ("ping.reply").
  * @param variables An optional object of variables to replace in the string.
  * @returns The translated and formatted string.
  */
 export function t(lng: Locale | string, key: I18nKey, variables?: TranslationVariables): string {
   let text: string | undefined;
 
-  const normalizedLng = lng.replace("_", "-");
-  const langFile = resources[normalizedLng] ?? resources[Locale.EnglishUS] ?? {}; // Fallback to en-US if not loaded
+  const normalizedLng = String(lng).replace("_", "-");
+  const langFile =
+    resources[normalizedLng] ?? resources[defaultLocale] ?? resources[Locale.EnglishUS] ?? {};
   text = getNestedValue(langFile, key);
 
   if (text === undefined) {
@@ -110,17 +120,24 @@ export function t(lng: Locale | string, key: I18nKey, variables?: TranslationVar
  * @param key The translation key.
  * @returns A record mapping locales to their translated strings.
  */
-export function getLocalizations(key: I18nKey): Record<string, string> {
+export function getLocalizations(
+  key: I18nKey,
+  baseLocale: Locale = Locale.EnglishUS,
+): Record<string, string> {
   const localizations: Record<string, string> = {};
-  const fallbackText = getNestedValue(resources[Locale.EnglishUS], key);
+
+  const baseText = getNestedValue(resources[baseLocale] ?? resources[Locale.EnglishUS] ?? {}, key);
 
   for (const lang in resources) {
-    if (lang === Locale.EnglishUS) continue;
+    if (lang === baseLocale) continue;
+
     const langFile = resources[lang];
     const translation = langFile ? getNestedValue(langFile, key) : undefined;
-    if (translation && translation !== fallbackText) {
+
+    if (translation && (baseText === undefined || translation !== baseText)) {
       localizations[lang.replace("_", "-")] = translation;
     }
   }
+
   return localizations;
 }

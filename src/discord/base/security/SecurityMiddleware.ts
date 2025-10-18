@@ -1,6 +1,6 @@
 import type { Middleware } from "../modules/shared/middleware.module.js";
 import { RateLimiter } from "./RateLimiter.js";
-import { logger, t, Timer } from "#utils";
+import { defaultLocale, logger, t, Timer } from "#utils";
 import { Message, MessageFlags, time } from "discord.js";
 
 const globalUserRateLimiter = new RateLimiter({
@@ -20,7 +20,7 @@ export const rateLimitMiddleware: Middleware = async (context, next) => {
     const relativeTime = time(expiresAtTimestamp, "R");
 
     const message = t(
-      "locale" in context ? context.locale : "en-US",
+      "locale" in context ? context.locale : defaultLocale,
       "common_errors.rate_limited",
       { time: relativeTime },
     );

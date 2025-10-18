@@ -19,7 +19,7 @@ import {
   UserSelectMenuBuilder,
   type MessageActionRowComponentBuilder,
 } from "discord.js";
-import { logger, t, type I18nKey, type TranslationVariables } from "#utils";
+import { defaultLocale, logger, t, type I18nKey, type TranslationVariables } from "#utils";
 
 /**
  * A union of all component builders that can be placed inside a Container.
@@ -70,7 +70,7 @@ interface I18nTextOptions extends I18nOptions {
  * it falls back to the `content` property, and then to an optional final fallback string.
  */
 function resolveText(options: I18nTextOptions, fallback?: string): string | undefined {
-  const { locale = "en-US", i18nKey, variables, content } = options;
+  const { locale = defaultLocale, i18nKey, variables, content } = options;
 
   if (i18nKey) {
     const translated = t(locale, i18nKey, variables);
@@ -175,7 +175,7 @@ export interface SectionOptions {
  * A section is a flexible component that holds text and an optional accessory.
  */
 export function createSection(options: SectionOptions): SectionBuilder {
-  const { locale = "en-US", text, accessory } = options;
+  const { locale = defaultLocale, text, accessory } = options;
 
   if (!text || (Array.isArray(text) && text.length === 0)) {
     throw new Error("Section requires at least one text item.");
@@ -225,7 +225,7 @@ export interface MediaGalleryOptions {
  * A media gallery displays a collection of images.
  */
 export function createMediaGallery(options: MediaGalleryOptions): MediaGalleryBuilder {
-  const { locale = "en-US", items } = options;
+  const { locale = defaultLocale, items } = options;
 
   if (!items || items.length === 0) {
     throw new Error("MediaGallery requires at least one item.");
@@ -378,7 +378,7 @@ const labelComponentSetters = [
  */
 export function createLabel(options: CreateLabelOptions): LabelBuilder {
   const {
-    locale = "en-US",
+    locale = defaultLocale,
     component,
     description,
     descriptionI18nKey,
