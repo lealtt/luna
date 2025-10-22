@@ -1,0 +1,36 @@
+{
+  "material-icon-theme.folders.associations": {
+    "discord": "Client",
+    "commands": "Scripts",
+    "slash": "Seeders",
+    "components": "Layout",
+    "events": "Event",
+    "states": "Pdm",
+    "tasks": "Tasks",
+    "base": "Core",
+    "structures": "Custom",
+    "bootstrap": "Meta"
+  },
+  "material-icon-theme.files.associations": {
+    "settings.json": "Raml",
+    "common.json": "i18n",
+    "commands.json": "i18n",
+    "pnpm-lock.yaml": "lock"
+  },
+  "material-icon-theme.folders.theme": "specific",
+
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.patterns": {
+    ".env": ".env*",
+    "Dockerfile": ".dockerignore",
+    "package.json": "pnpm-lock.yaml, yarn.lock, tsconfig.json, .gitignore, tsup.config.ts, eslint.config.js, .prettierignore, .prettierrc, README.md, LICENSE",
+    "settings.json": "emojis.json"
+  },
+
+  "typescript.suggest.autoImports": true,
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "pnpm-lock.yaml": true
+  }
+}

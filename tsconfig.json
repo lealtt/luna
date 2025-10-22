@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
+    "strict": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": true,
+    "declaration": true,
+    "baseUrl": "./src",
+    "paths": {
+      "#discord/bootstrap": ["discord/base/bootstrap/bootstrap.ts"],
+      "#discord/modules": ["discord/base/modules/index.ts"],
+      "#middlewares": ["middlewares/index.ts"],
+      "#functions": ["functions/index.ts"],
+      "#states": ["states/index.ts"],
+      "#translate": ["translate/index.ts"],
+      "#database": ["database/index.ts"],
+      "#utils": ["utils/index.ts"],
+      "#env": ["env.ts"],
+      "#emojisJson": ["../emojis.json"]
+    }
+  },
+  "include": ["./**/*.ts"],
+  "exclude": ["node_modules", "dist", "tsup.config.ts"]
+}

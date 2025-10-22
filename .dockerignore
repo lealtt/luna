@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Node modules & cache
+node_modules
+.pnpm-store
+
+# Source & configs
+src
+cli
+__tests__
+tsconfig.json
+tsup.config.ts
+.env.example
+.env.dev
+
+# Linting & formatting
+eslint.config.js
+prettier.config.js
+.prettierrc
+.prettierignore
+
+# Editor
+.devcontainer
+.vscode
+*.test.ts
+*.spec.ts
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Docs
+README.md
+LICENSE
+Dockerfile
+docker-compose.yml
+docs

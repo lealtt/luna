@@ -1,0 +1,38 @@
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.dev
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Optional npm cache directory
+.npm/
+
+# Optional eslint cache
+.eslintcache
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor directories
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Certificates
+certs/
+
+# Build / dist directories
+dist/
+
+# Temporary files
+tmp/
+temp/
+*.zip
+*.emojis*
