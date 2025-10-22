@@ -7,7 +7,7 @@ import {
 import { autocompleteRegistry, commandRegistry } from "./command.module.js";
 import { runMiddlewareChain } from "../shared/middleware.module.js";
 import { logger } from "#utils";
-import type { AnyApplicationCommandInteraction } from "./command.types.js";
+import type { AnyCommandInteraction } from "./command.types.js";
 import { t } from "#translate";
 
 type AnyAutocompleteHandler = (
@@ -47,7 +47,7 @@ export async function handleAutocomplete(interaction: AutocompleteInteraction): 
 }
 
 export async function handleApplicationCommand(
-  interaction: AnyApplicationCommandInteraction,
+  interaction: AnyCommandInteraction,
 ): Promise<void> {
   const client = interaction.client;
   const command = client.commands.get(interaction.commandName);

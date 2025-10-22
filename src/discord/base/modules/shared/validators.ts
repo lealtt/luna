@@ -1,5 +1,4 @@
 import { BaseValidator } from "../../structures/Validator.js";
-import { SnowflakeUtil } from "discord.js";
 
 export class NameValidator<T extends { name: string }> extends BaseValidator<T> {
   protected execute(item: T): void {
@@ -31,36 +30,6 @@ export class TaskScheduleValidator<
 
     if (item.interval !== undefined && item.interval < 1000) {
       throw new Error(`Task "${item.name}" interval must be at least 1000ms (1 second)`);
-    }
-  }
-}
-
-export class AliasesValidator<
-  T extends { aliases?: string[]; name?: string },
-> extends BaseValidator<T> {
-  protected execute(item: T): void {
-    if (item.aliases?.some((alias) => !alias || alias === item.name)) {
-      throw new Error(`Validation failed: Invalid aliases for command "${item.name}".`);
-    }
-  }
-}
-
-export class GuildIdsValidator<
-  T extends { guilds?: string[]; name?: string },
-> extends BaseValidator<T> {
-  protected execute(item: T): void {
-    if (!item.guilds) return;
-
-    for (const id of item.guilds) {
-      if (!/^[0-9]{17,20}$/.test(id)) {
-        throw new Error(`Invalid guild ID in "${item.name}": ${id}`);
-      }
-
-      try {
-        SnowflakeUtil.deconstruct(id);
-      } catch {
-        throw new Error(`Invalid snowflake for guild ID in "${item.name}": ${id}`);
-      }
     }
   }
 }

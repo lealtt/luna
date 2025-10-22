@@ -147,8 +147,3 @@ export type StorableCommand = {
   run: (interaction: AnyCommandInteraction) => any | Promise<any>;
   middlewares?: Middleware<any>[];
 };
-
-export type AnyApplicationCommandInteraction =
-  | ChatInputCommandInteraction
-  | UserContextMenuCommandInteraction
-  | MessageContextMenuCommandInteraction;
